@@ -1,6 +1,6 @@
 #!/bin/python
 
-import sys, curses, time
+import curses, time
 from threading import Thread
 
 class PyClock(object):
@@ -8,7 +8,7 @@ class PyClock(object):
     kRESET = '\033[0m'
 
     # default,grey,red,green,yellow,blue,purple,cyan,white,black
-    kCOLOR = [98,90,91,92,93,94,95,96,97,30]
+    kCOLORS = [98,90,91,92,93,94,95,96,97,30]
 
     kWIDTH_MIN = 1
     kWIDTH_MAX = 10
@@ -17,7 +17,6 @@ class PyClock(object):
         self.needs_update = False
         self._color = None
         self._width = None
-        self._super = 10
 
         self.width = self.kWIDTH_MIN
         self.color = 0
@@ -25,10 +24,7 @@ class PyClock(object):
         self.thread = Thread(target = self.run)
         self.running = False
 
-        self.xxxx = None
-        self.xoox = None
-        self.xooo = None
-        self.ooox = None
+        self.xxxx = self.xoox = self.xooo = self.ooox = None
 
     @property
     def width(self): return self._width
@@ -44,17 +40,8 @@ class PyClock(object):
     @color.setter
     def color(self, value):
         index = int(value)
-        val = self.kCOLOR[index]
+        val = self.kCOLORS[index]
         self._color = '\033[%sm' % (val)
-        self.needs_update = True
-
-    @property
-    def super(self): return self._super
-    @super.setter
-    def super(self, value):
-        self._super = value
-        print str(self.super)
-        self.color = '\033[%sm' % (self.super)
         self.needs_update = True
 
     def update(self):
@@ -87,39 +74,44 @@ class PyClock(object):
                     ]) for y in range(5)
                 ]) + '\n', time.sleep(1)
 
+class Driver(object):
+    def __init__(self):
+        self.clock = PyClock()
+        self.scr = None
+        self.quit = True
+
+    def start(self):
+        self.quit = False
+        self.clock.start()
+        self.run()
+
+    def stop(self):
+        curses.endwin()
+        self.clock.stop()
+
+    def run(self):
+        self.scr = curses.initscr()
+        curses.cbreak()
+
+        try:
+            while self.quit != True:
+                key = curses.keyname(self.scr.getch())
+
+                if key=='q': self.quit = True
+
+                if key.isdigit(): self.clock.color = key
+
+                if key==',' or key=='<': self.clock.width -= 1
+                if key=='.' or key=='>': self.clock.width += 1
+
+        except Exception, err:
+            print err
+        finally:
+            self.stop()
+
 if __name__ == '__main__':
-    clock = PyClock()
-    clock.start()
-    print 'started'
+    Driver().start()
 
-    stdscr = curses.initscr()
-    curses.cbreak()
-
-    quit=False
-    try:
-        while quit !=True:
-            key = curses.keyname(stdscr.getch())
-
-            if key=='q':
-                quit=True
-                clock.stop()
-
-            if key.isdigit(): clock.color = key
-
-            if key==',': clock.width -= 1
-            if key=='.': clock.width += 1
-
-            if key=='[': clock.super -= 1
-            if key==']': clock.super += 1
-
-
-    except Exception, err:
-        print err
-        curses.endwin()
-        clock.stop()
-    finally:
-        curses.endwin()
-        clock.stop()
 
 
 
