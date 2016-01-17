@@ -1,4 +1,4 @@
-#!/bin/python
+#!/usr/bin/python
 
 import curses, time
 from threading import Thread
@@ -97,7 +97,7 @@ class Driver(object):
             while self.quit != True:
                 key = curses.keyname(self.scr.getch())
 
-                if key=='q': self.quit = True
+                if key=='q' or key=='Q': self.quit = True
 
                 if key.isdigit(): self.clock.color = key
 
