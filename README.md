@@ -21,7 +21,7 @@ python pyclock.py
 
 - [x] Works on Linux completely
 
-- [-] Will not work on Windows due to special characters
+- [ ] Will not work on Windows due to special characters
 ######Windows support is a very low priority
 
 - [ ] Should work on OSX, but hasn't been tested
