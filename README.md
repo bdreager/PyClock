@@ -17,7 +17,7 @@ python pyclock.py
 
  >/.: increase width
 ```
-###Issues
+###Support
 
 - [x] Works on Linux completely
 

@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import curses, time
+import curses, time, sys
 from threading import Thread
 
 class PyClock(object):
@@ -24,7 +24,7 @@ class PyClock(object):
         self.thread = Thread(target = self.run)
         self.running = False
 
-        self.xxxx = self.xoox = self.xooo = self.ooox = None
+        self.num = None
 
     @property
     def width(self): return self._width
@@ -49,10 +49,18 @@ class PyClock(object):
         x = self.color+self.kBLOCK+space
         o = self.kRESET+space
 
-        self.xxxx = x+x+x+x+o
-        self.xoox = x+o+o+x+o
-        self.xooo = x+o+o+o+o
-        self.ooox = o+o+o+x+o
+        a = x+x+x+x+o
+        b = x+o+o+x+o
+        c = x+o+o+o+o
+        d = o+o+o+x+o
+                    # 0,1,2,3,4,5,6,7,8,9
+        self.num = [ [a,d,a,a,b,a,a,a,a,a],
+                     [b,d,d,d,b,c,c,d,b,b],
+                     [b,d,a,a,a,a,a,d,a,a],
+                     [b,d,c,d,d,d,b,d,b,d],
+                     [a,d,a,a,d,a,a,d,a,a] ]
+
+        self.pun = [o+o,x+o]
 
         self.needs_update = False
 
@@ -67,12 +75,22 @@ class PyClock(object):
         while self.running:
             if (self.needs_update): self.update()
 
-            print '\r\n'*99 + '\n\r'.join(
-                [' '.join(
-                    [[self.xxxx,self.xoox,self.xooo,self.ooox][int("01110333330302003030110330203002010033330101001030"[int(z)*5+y])]
-                        for z in time.strftime("%I%M%S")
-                    ]) for y in range(5)
-                ]) + '\n', time.sleep(1)
+            cur = [int(k) for k in time.strftime("%I%M%S")]
+            length = len(cur)
+            punEnd = length - 2
+            output = '\n'
+            for i in range(5):
+                line = '\r' # needed because of curses
+                for j in range(length):
+                    line += self.num[i][cur[j]]
+                    if j < punEnd and j % 2 != 0:
+                        line += self.pun[i % 2 != 0]
+
+                output += line + "\n"
+
+            sys.stdout.write(output)
+
+            time.sleep(1)
 
 class Driver(object):
     def __init__(self):
@@ -97,7 +115,7 @@ class Driver(object):
             while self.quit != True:
                 key = curses.keyname(self.scr.getch())
 
-                if key=='q' or key=='Q': self.quit = True
+                if key.lower()=='q': self.quit = True
 
                 if key.isdigit(): self.clock.color = key
 
