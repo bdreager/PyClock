@@ -1,4 +1,4 @@
-# PseudoBusy
+# PyClock
 
 ###What
 A simple digital clock for the terminal
