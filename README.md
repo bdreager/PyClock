@@ -11,6 +11,8 @@ python pyclock.py
 ```
  q/Q: quit
 
+ s/S: toggle seconds
+
  0-9: change color
 
  </,: decrease width

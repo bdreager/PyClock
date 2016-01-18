@@ -18,6 +18,7 @@ class PyClock(object):
         self._color = None
         self._width = None
 
+        self.format = '%I%M%S'
         self.width = self.kWIDTH_MIN
         self.color = 0
 
@@ -75,7 +76,7 @@ class PyClock(object):
         while self.running:
             if (self.needs_update): self.update()
 
-            cur = [int(k) for k in time.strftime("%I%M%S")]
+            cur = [int(k) for k in time.strftime(self.format)]
             length = len(cur)
             punEnd = length - 2
             output = '\n'
@@ -91,6 +92,9 @@ class PyClock(object):
             sys.stdout.write(output)
 
             time.sleep(1)
+
+    def toggle_format(self):
+        self.format = '%I%M%S' if self.format == '%I%M' else '%I%M'
 
 class Driver(object):
     def __init__(self):
@@ -114,8 +118,12 @@ class Driver(object):
         try:
             while self.quit != True:
                 key = curses.keyname(self.scr.getch())
+                sys.stdout.write('\b \b')
+                sys.stdout.flush()
+                lower = key.lower()
 
-                if key.lower()=='q': self.quit = True
+                if lower=='q': self.quit = True
+                if lower=='s': self.clock.toggle_format()
 
                 if key.isdigit(): self.clock.color = key
 
