@@ -13,6 +13,8 @@ python pyclock.py
 
  s/S: toggle seconds
 
+ p/P: toggle punctuation
+
  0-9: change color
 
  </,: decrease width

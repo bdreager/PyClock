@@ -18,6 +18,7 @@ class PyClock(object):
         self._color = None
         self._width = None
 
+        self.punctuation = True
         self.format = '%I%M%S'
         self.width = self.kWIDTH_MIN
         self.color = 0
@@ -84,7 +85,7 @@ class PyClock(object):
                 line = '\r' # needed because of curses
                 for j in range(length):
                     line += self.num[i][cur[j]]
-                    if j < punEnd and j % 2 != 0:
+                    if self.punctuation and j < punEnd and j % 2 != 0:
                         line += self.pun[i % 2 != 0]
 
                 output += line + "\n"
@@ -95,6 +96,9 @@ class PyClock(object):
 
     def toggle_format(self):
         self.format = '%I%M%S' if self.format == '%I%M' else '%I%M'
+
+    def toggle_punctuation(self):
+        self.punctuation = not self.punctuation
 
 class Driver(object):
     def __init__(self):
@@ -118,12 +122,13 @@ class Driver(object):
         try:
             while self.quit != True:
                 key = curses.keyname(self.scr.getch())
-                sys.stdout.write('\b \b')
+                sys.stdout.write('\b \b') # hides character input
                 sys.stdout.flush()
                 lower = key.lower()
 
                 if lower=='q': self.quit = True
                 if lower=='s': self.clock.toggle_format()
+                if lower=='p': self.clock.toggle_punctuation()
 
                 if key.isdigit(): self.clock.color = key
 
