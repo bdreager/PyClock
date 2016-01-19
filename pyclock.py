@@ -10,17 +10,22 @@ class PyClock(object):
     # default,grey,red,green,yellow,blue,purple,cyan,white,black
     kCOLORS = [98,90,91,92,93,94,95,96,97,30]
 
+    kHEIGHT_MIN = 1
+    kHEIGHT_MAX = 10
+
     kWIDTH_MIN = 1
-    kWIDTH_MAX = 10
+    kWIDTH_MAX = 20
 
     def __init__(self):
         self.needs_update = False
         self._color = None
         self._width = None
+        self._height = None
 
         self.punctuation = True
         self.format = '%I%M%S'
         self.width = self.kWIDTH_MIN
+        self.height = self.kHEIGHT_MIN
         self.color = 0
 
         self.thread = Thread(target = self.run)
@@ -36,6 +41,14 @@ class PyClock(object):
         if self._width < self.kWIDTH_MIN: self._width = self.kWIDTH_MIN
         if self._width > self.kWIDTH_MAX: self._width = self.kWIDTH_MAX
         self.needs_update = True
+
+    @property
+    def height(self): return self._height
+    @height.setter
+    def height(self, value):
+        self._height = value
+        if self._height < self.kHEIGHT_MIN: self._height = self.kHEIGHT_MIN
+        if self._height > self.kHEIGHT_MAX: self._height = self.kHEIGHT_MAX
 
     @property
     def color(self): return self._color
@@ -82,13 +95,13 @@ class PyClock(object):
             punEnd = length - 2
             output = '\n'
             for i in range(5):
-                line = '\r' # needed because of curses
+                line = '\r ' # needed because of curses
                 for j in range(length):
                     line += self.num[i][cur[j]]
                     if self.punctuation and j < punEnd and j % 2 != 0:
                         line += self.pun[i % 2 != 0]
 
-                output += line + "\n"
+                for k in range(self.height): output += line + "\n"
 
             sys.stdout.write(output)
 
@@ -134,6 +147,9 @@ class Driver(object):
 
                 if key==',' or key=='<': self.clock.width -= 1
                 if key=='.' or key=='>': self.clock.width += 1
+
+                if key=='[' or key=='{': self.clock.height -= 1
+                if key==']' or key=='}': self.clock.height += 1
 
         except Exception, err:
             print err

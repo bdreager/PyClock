@@ -20,6 +20,10 @@ python pyclock.py
  </,: decrease width
 
  >/.: increase width
+
+ [/{: decrease height
+
+ ]/}: increase height
 ```
 ###Support
 
