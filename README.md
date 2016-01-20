@@ -8,23 +8,18 @@ A simple digital clock for the terminal
 python pyclock.py
 ```
 ###Controls
-```
- q/Q: quit
 
- s/S: toggle seconds
+Keys  | Actions
+----- | -------
+<kbd>q</kbd> or <kbd>Q</kbd> | quit
+<kbd>s</kbd> or <kbd>S</kbd> | toggle seconds
+<kbd>p</kbd> or <kbd>P</kbd> | toggle punctuation
+<kbd>0</kbd> to <kbd>9</kbd> | change color
+<kbd><</kbd> or <kbd>,</kbd> | decrease width
+<kbd>></kbd> or <kbd>.</kbd> | increase width
+<kbd>[</kbd> or <kbd>{</kbd> | decrease height
+<kbd>]</kbd> or <kbd>}</kbd> | increase height
 
- p/P: toggle punctuation
-
- 0-9: change color
-
- </,: decrease width
-
- >/.: increase width
-
- [/{: decrease height
-
- ]/}: increase height
-```
 ###Support
 
 - [x] Works on Linux completely
