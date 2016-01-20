@@ -104,6 +104,7 @@ class PyClock(object):
                 for k in range(self.height): output += line + "\n"
 
             sys.stdout.write(output)
+            sys.stdout.flush()
 
             time.sleep(1)
 
