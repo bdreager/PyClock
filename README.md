@@ -24,7 +24,7 @@ Keys  | Actions
 
 - [x] Works on Linux completely
 
+- [x] Works on OSX completely
+
 - [ ] Will not work on Windows due to special characters
 ######Windows support is a very low priority
-
-- [ ] Should work on OSX, but hasn't been tested
