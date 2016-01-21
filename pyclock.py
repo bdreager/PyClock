@@ -1,7 +1,9 @@
 #!/usr/bin/python
 
-import curses, time, sys
+import curses, time, sys, os
 from threading import Thread
+
+clear = lambda: os.system(['clear','cls'][os.name == 'nt'])
 
 class PyClock(object):
     kBLOCK = '\033[7m'
@@ -17,7 +19,9 @@ class PyClock(object):
     kWIDTH_MAX = 20
 
     def __init__(self):
+        self.running = False
         self.needs_update = False
+
         self._color = None
         self._width = None
         self._height = None
@@ -27,11 +31,6 @@ class PyClock(object):
         self.width = self.kWIDTH_MIN
         self.height = self.kHEIGHT_MIN
         self.color = 0
-
-        self.thread = Thread(target = self.run)
-        self.running = False
-
-        self.num = None
 
     @property
     def width(self): return self._width
@@ -61,7 +60,7 @@ class PyClock(object):
 
     def update(self):
         space = ' '*self.width
-        x = self.color+self.kBLOCK+space
+        x = self.kRESET+self.color+self.kBLOCK+space
         o = self.kRESET+space
 
         a = x+x+x+x+o
@@ -81,6 +80,7 @@ class PyClock(object):
 
     def start(self):
         self.running = True
+        self.thread = Thread(target = self.run)
         self.thread.start()
 
     def stop(self):
@@ -103,6 +103,7 @@ class PyClock(object):
 
                 for k in range(self.height): output += line + "\n"
 
+            clear()
             sys.stdout.write(output)
             sys.stdout.flush()
 
@@ -115,13 +116,16 @@ class PyClock(object):
         self.punctuation = not self.punctuation
 
 class Driver(object):
-    def __init__(self):
+    def __init__(self, stdscr):
+        self.stdscr = stdscr
+        curses.curs_set(0)
+
         self.clock = PyClock()
-        self.scr = None
         self.quit = True
 
     def start(self):
         self.quit = False
+
         self.clock.start()
         self.run()
 
@@ -130,35 +134,33 @@ class Driver(object):
         self.clock.stop()
 
     def run(self):
-        self.scr = curses.initscr()
-        curses.cbreak()
-
         try:
             while self.quit != True:
-                key = curses.keyname(self.scr.getch())
-                sys.stdout.write('\b \b') # hides character input
-                sys.stdout.flush()
+                key = curses.keyname(self.stdscr.getch())
                 lower = key.lower()
 
-                if lower=='q': self.quit = True
-                if lower=='s': self.clock.toggle_format()
-                if lower=='p': self.clock.toggle_punctuation()
+                if   lower=='q': self.quit = True
+                elif lower=='s': self.clock.toggle_format()
+                elif lower=='p': self.clock.toggle_punctuation()
 
-                if key.isdigit(): self.clock.color = key
+                elif key.isdigit(): self.clock.color = key
 
-                if key==',' or key=='<': self.clock.width -= 1
-                if key=='.' or key=='>': self.clock.width += 1
+                elif key==',' or key=='<': self.clock.width -= 1
+                elif key=='.' or key=='>': self.clock.width += 1
 
-                if key=='[' or key=='{': self.clock.height -= 1
-                if key==']' or key=='}': self.clock.height += 1
+                elif key=='[' or key=='{': self.clock.height -= 1
+                elif key==']' or key=='}': self.clock.height += 1
 
         except Exception, err:
             print err
         finally:
             self.stop()
 
+def main(stdscr):
+    Driver(stdscr).start()
+
 if __name__ == '__main__':
-    Driver().start()
+    curses.wrapper(main)
 
 
 
