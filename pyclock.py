@@ -1,13 +1,12 @@
 #!/usr/bin/python
 
-import curses, time, sys, os
+import curses, time, sys
 from threading import Thread
-
-clear = lambda: os.system(['clear','cls'][os.name == 'nt'])
 
 class PyClock(object):
     kBLOCK = '\033[7m'
     kRESET = '\033[0m'
+    kCLEAR = '\033[2J\033[;H'
 
     # default,grey,red,green,yellow,blue,purple,cyan,white,black
     kCOLORS = [98,90,91,92,93,94,95,96,97,30]
@@ -103,7 +102,7 @@ class PyClock(object):
 
                 for k in range(self.height): output += line + "\n"
 
-            clear()
+            sys.stdout.write(self.kCLEAR)
             sys.stdout.write(output)
             sys.stdout.flush()
 
