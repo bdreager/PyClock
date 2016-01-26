@@ -93,8 +93,9 @@ class PyClock(object):
             length = len(cur)
             punEnd = length - 2
             output = '\n'
+            line_init = self.kRESET+'\r'+(' '*self.width) # \r needed because of curses
             for i in range(5):
-                line = '\r ' # needed because of curses
+                line = line_init
                 for j in range(length):
                     line += self.num[i][cur[j]]
                     if self.punctuation and j < punEnd and j % 2 != 0:
