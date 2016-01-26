@@ -1,25 +1,30 @@
 #!/usr/bin/python
 
-import curses, time, sys
+import curses, time, sys, os
 from threading import Thread
 
 class PyClock(object):
-    kBLOCK = '\033[7m'
-    kRESET = '\033[0m'
-    kCLEAR = '\033[2J\033[;H'
+    # kBLOCK = '\033[7m'
+    # kRESET = '\033[0m'
+    # kCLEAR = '\033[2J\033[;H'
+    kCHAR_HEIGHT = 5
+    kCHAR_WIDTH = 4
+    kPUN_INDEX = 10
+    kSQUARE = " "
 
     # default,grey,red,green,yellow,blue,purple,cyan,white,black
-    kCOLORS = [98,90,91,92,93,94,95,96,97,30]
+    # kCOLORS = [98,90,91,92,93,94,95,96,97,30]
 
-    kHEIGHT_MIN = 1
-    kHEIGHT_MAX = 10
+    # kHEIGHT_MIN = 1
+    # kHEIGHT_MAX = 10
 
-    kWIDTH_MIN = 1
-    kWIDTH_MAX = 20
+    # kWIDTH_MIN = 1
+    # kWIDTH_MAX = 20
 
-    def __init__(self):
+    def __init__(self, stdscr):
+        self.stdscr = stdscr
         self.running = False
-        self.needs_update = False
+        self.needs_update = True
 
         self._color = None
         self._width = None
@@ -27,55 +32,64 @@ class PyClock(object):
 
         self.punctuation = True
         self.format = '%I%M%S'
-        self.width = self.kWIDTH_MIN
-        self.height = self.kHEIGHT_MIN
-        self.color = 0
+        self.width = 1 # self.kWIDTH_MIN
+        self.height = 1 # self.kHEIGHT_MIN
+        self.color = 2
+
+        for i in range(10): curses.init_pair(i, -1, i)
+
+        x = True
+        o = False
+
+        a = [x,x,x,x]
+        b = [x,o,o,x]
+        c = [x,o,o,o]
+        d = [o,o,o,x]
+                          # 0,1,2,3,4,5,6,7,8,9,:
+        self.templates = [ [a,d,a,a,b,a,a,a,a,a,o],
+                           [b,d,d,d,b,c,c,d,b,b,x],
+                           [b,d,a,a,a,a,a,d,a,a,o],
+                           [b,d,c,d,d,d,b,d,b,d,x],
+                           [a,d,a,a,d,a,a,d,a,a,o] ]
 
     @property
     def width(self): return self._width
     @width.setter
     def width(self, value):
         self._width = value
-        if self._width < self.kWIDTH_MIN: self._width = self.kWIDTH_MIN
-        if self._width > self.kWIDTH_MAX: self._width = self.kWIDTH_MAX
+        if self._width < 0: self._width = 0
+        # if self._width < self.kWIDTH_MIN: self._width = self.kWIDTH_MIN
+        # if self._width > self.kWIDTH_MAX: self._width = self.kWIDTH_MAX
         self.needs_update = True
+
+        num = len([int(k) for k in time.strftime(self.format)])
+        output_width = num * (self.kCHAR_WIDTH*self.width + self.width)
+        if self.punctuation: output_width += (self.width + self.width)*2
+        window_width = self.stdscr.getmaxyx()[1]
+
+        if output_width > window_width: self.width -= 1 #trigger setter
 
     @property
     def height(self): return self._height
     @height.setter
     def height(self, value):
         self._height = value
-        if self._height < self.kHEIGHT_MIN: self._height = self.kHEIGHT_MIN
-        if self._height > self.kHEIGHT_MAX: self._height = self.kHEIGHT_MAX
+        if self._height < 0: self._height = 0
+        # if self._height < self.kHEIGHT_MIN: self._height = self.kHEIGHT_MIN
+        # if self._height > self.kHEIGHT_MAX: self._height = self.kHEIGHT_MAX
+        self.needs_update = True
+
+        output_height = self.kCHAR_HEIGHT * self.height + (self.height*2)
+        window_height = self.stdscr.getmaxyx()[0]
+
+        if output_height > window_height: self.height -= 1 #trigger setter
 
     @property
     def color(self): return self._color
     @color.setter
     def color(self, value):
-        index = int(value)
-        val = self.kCOLORS[index]
-        self._color = '\033[%sm' % (val)
+        self._color = curses.color_pair(int(value))
         self.needs_update = True
-
-    def update(self):
-        space = ' '*self.width
-        x = self.kRESET+self.color+self.kBLOCK+space
-        o = self.kRESET+space
-
-        a = x+x+x+x+o
-        b = x+o+o+x+o
-        c = x+o+o+o+o
-        d = o+o+o+x+o
-                    # 0,1,2,3,4,5,6,7,8,9
-        self.num = [ [a,d,a,a,b,a,a,a,a,a],
-                     [b,d,d,d,b,c,c,d,b,b],
-                     [b,d,a,a,a,a,a,d,a,a],
-                     [b,d,c,d,d,d,b,d,b,d],
-                     [a,d,a,a,d,a,a,d,a,a] ]
-
-        self.pun = [o+o,x+o]
-
-        self.needs_update = False
 
     def start(self):
         self.running = True
@@ -86,59 +100,102 @@ class PyClock(object):
         self.running = False
 
     def run(self):
+        self.needs_update = True
         while self.running:
-            if (self.needs_update): self.update()
+            if (self.needs_update):
+                self.stdscr.clear()
+                self.stdscr.refresh()
+                old_time = None
 
-            cur = [int(k) for k in time.strftime(self.format)]
-            length = len(cur)
-            punEnd = length - 2
-            output = '\n'
-            for i in range(5):
-                line = '\r ' # needed because of curses
-                for j in range(length):
-                    line += self.num[i][cur[j]]
-                    if self.punctuation and j < punEnd and j % 2 != 0:
-                        line += self.pun[i % 2 != 0]
+            cur_time = [int(k) for k in time.strftime(self.format)]
+            cur_length = len(cur_time)
+            pun_end = cur_length - 2
+            x = y = 0
+            full_width = self.kCHAR_WIDTH*self.width
+            space_width = self.width
+            for i in range(cur_length):
+                if not old_time or old_time[i] != cur_time[i]: # skip numbers that haven't changed
+                    self.draw_number(x, y, cur_time[i])
 
-                for k in range(self.height): output += line + "\n"
+                x += space_width + full_width
 
-            sys.stdout.write(self.kCLEAR)
-            sys.stdout.write(output)
-            sys.stdout.flush()
+                if self.punctuation and i < pun_end and i % 2 != 0:
+                    self.draw_punctuation(x, y, self.kPUN_INDEX)
+                    x += self.width + space_width
 
+            self.stdscr.refresh()
+            old_time = cur_time
+
+            #curses.napms(1000) # doesn't work well/input lag
             time.sleep(1)
+
+    def draw_number(self, x_origin, y_origin, template_index):
+        y = y_origin
+        for r in range(self.kCHAR_HEIGHT):
+            line = self.templates[r][template_index]
+            length  = len(line)
+            for h in range(self.height):
+                x = x_origin
+                for c in range(length):
+                    color = self.color if line[c] else 0
+                    for w in range(self.width):
+                        self.stdscr.addstr(y, x, self.kSQUARE, color)
+                        x += 1
+                y += 1
+
+    def draw_punctuation(self, x_origin, y_origin, template_index):
+        y = y_origin
+        for r in range(self.kCHAR_HEIGHT):
+            color = self.color if self.templates[r][template_index] else 0
+            for h in range(self.height):
+                x = x_origin
+                for w in range(self.width):
+                    self.stdscr.addstr(y, x, self.kSQUARE, color)
+                    x += 1
+                y += 1
 
     def toggle_format(self):
         self.format = '%I%M%S' if self.format == '%I%M' else '%I%M'
+        self.width = self.width # trigger setter
+        self.needs_update = True
 
     def toggle_punctuation(self):
         self.punctuation = not self.punctuation
+        self.width = self.width
+        self.needs_update = True
 
 class Driver(object):
+    kKEY_ESC = 27
     def __init__(self, stdscr):
         self.stdscr = stdscr
         curses.curs_set(0)
+        #curses.start_color()
+        curses.use_default_colors()
 
-        self.clock = PyClock()
+        self.clock = PyClock(self.stdscr)
         self.quit = True
 
     def start(self):
         self.quit = False
 
         self.clock.start()
+        curses.napms(100) #needed for a race condition
+
         self.run()
 
     def stop(self):
-        curses.endwin()
         self.clock.stop()
 
     def run(self):
         try:
             while self.quit != True:
-                key = curses.keyname(self.stdscr.getch())
+                input = self.stdscr.getch()
+                key = curses.keyname(input)
                 lower = key.lower()
 
-                if   lower=='q': self.quit = True
+                if input == curses.KEY_RESIZE: print 'TODO'
+
+                elif input==self.kKEY_ESC or lower=='q': self.quit = True
                 elif lower=='s': self.clock.toggle_format()
                 elif lower=='p': self.clock.toggle_punctuation()
 
@@ -159,6 +216,7 @@ def main(stdscr):
     Driver(stdscr).start()
 
 if __name__ == '__main__':
+    os.environ.setdefault('ESCDELAY', '25')
     curses.wrapper(main)
 
 
