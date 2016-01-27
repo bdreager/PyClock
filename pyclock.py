@@ -30,6 +30,7 @@ class PyClock(object):
         self._width = None
         self._height = None
 
+        self.center = False
         self.punctuation = True
         self.format = '%I%M%S'
         self.width = 1 # self.kWIDTH_MIN
@@ -62,7 +63,7 @@ class PyClock(object):
         # if self._width > self.kWIDTH_MAX: self._width = self.kWIDTH_MAX
         self.needs_update = True
 
-        num = len([int(k) for k in time.strftime(self.format)])
+        num = len(time.strftime(self.format))
         output_width = num * (self.kCHAR_WIDTH*self.width + self.width)
         if self.punctuation: output_width += (self.width + self.width)*2
         window_width = self.stdscr.getmaxyx()[1]
@@ -102,17 +103,27 @@ class PyClock(object):
     def run(self):
         self.needs_update = True
         while self.running:
-            if (self.needs_update):
+            cur_time = [int(k) for k in time.strftime(self.format)]
+            if self.needs_update or cur_time != old_time:
+                self.needs_update = False
                 self.stdscr.clear()
                 self.stdscr.refresh()
                 old_time = None
+            else:
+                time.sleep(0.01)
+                continue
 
-            cur_time = [int(k) for k in time.strftime(self.format)]
             cur_length = len(cur_time)
             pun_end = cur_length - 2
             x = y = 0
             full_width = self.kCHAR_WIDTH*self.width
             space_width = self.width
+            if self.center:
+                screen_height, screen_width = self.stdscr.getmaxyx()
+                output_width = cur_length * (self.kCHAR_WIDTH*self.width + self.width)
+                if self.punctuation: output_width += (self.width + self.width)*2
+                x = (screen_width + 1 - output_width) // 2
+                y = (screen_height + 1 - (self.kCHAR_HEIGHT * self.height)) // 2
             for i in range(cur_length):
                 if not old_time or old_time[i] != cur_time[i]: # skip numbers that haven't changed
                     self.draw_number(x, y, cur_time[i])
@@ -127,7 +138,7 @@ class PyClock(object):
             old_time = cur_time
 
             #curses.napms(1000) # doesn't work well/input lag
-            time.sleep(1)
+            time.sleep(0.01)
 
     def draw_number(self, x_origin, y_origin, template_index):
         y = y_origin
@@ -164,6 +175,10 @@ class PyClock(object):
         self.width = self.width
         self.needs_update = True
 
+    def toggle_center(self):
+        self.center = not self.center
+        self.needs_update = True
+
 class Driver(object):
     kKEY_ESC = 27
     def __init__(self, stdscr):
@@ -193,11 +208,14 @@ class Driver(object):
                 key = curses.keyname(input)
                 lower = key.lower()
 
-                if input == curses.KEY_RESIZE: print 'TODO'
+                if input == curses.KEY_RESIZE:
+                    self.clock.width = self.clock.width
+                    self.clock.height = self.clock.height
 
                 elif input==self.kKEY_ESC or lower=='q': self.quit = True
                 elif lower=='s': self.clock.toggle_format()
                 elif lower=='p': self.clock.toggle_punctuation()
+                elif lower=='c': self.clock.toggle_center()
 
                 elif key.isdigit(): self.clock.color = key
 
