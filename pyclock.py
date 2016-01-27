@@ -103,12 +103,16 @@ class PyClock(object):
     def run(self):
         self.needs_update = True
         while self.running:
-            if (self.needs_update):
+            cur_time = [int(k) for k in time.strftime(self.format)]
+            if self.needs_update or cur_time != old_time:
+                self.needs_update = False
                 self.stdscr.clear()
                 self.stdscr.refresh()
                 old_time = None
+            else:
+                time.sleep(0.01)
+                continue
 
-            cur_time = [int(k) for k in time.strftime(self.format)]
             cur_length = len(cur_time)
             pun_end = cur_length - 2
             x = y = 0
@@ -134,7 +138,7 @@ class PyClock(object):
             old_time = cur_time
 
             #curses.napms(1000) # doesn't work well/input lag
-            time.sleep(1)
+            time.sleep(0.01)
 
     def draw_number(self, x_origin, y_origin, template_index):
         y = y_origin
