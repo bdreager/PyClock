@@ -30,6 +30,7 @@ class PyClock(object):
         self._width = None
         self._height = None
 
+        self.center = False
         self.punctuation = True
         self.format = '%I%M%S'
         self.width = 1 # self.kWIDTH_MIN
@@ -113,6 +114,12 @@ class PyClock(object):
             x = y = 0
             full_width = self.kCHAR_WIDTH*self.width
             space_width = self.width
+            if self.center:
+                screen_height, screen_width = self.stdscr.getmaxyx()
+                output_width = cur_length * (self.kCHAR_WIDTH*self.width + self.width)
+                if self.punctuation: output_width += (self.width + self.width)*2
+                x = (screen_width + 1 - output_width) // 2
+                y = (screen_height + 1 - (self.kCHAR_HEIGHT * self.height)) // 2
             for i in range(cur_length):
                 if not old_time or old_time[i] != cur_time[i]: # skip numbers that haven't changed
                     self.draw_number(x, y, cur_time[i])
@@ -164,6 +171,10 @@ class PyClock(object):
         self.width = self.width
         self.needs_update = True
 
+    def toggle_center(self):
+        self.center = not self.center
+        self.needs_update = True
+
 class Driver(object):
     kKEY_ESC = 27
     def __init__(self, stdscr):
@@ -200,6 +211,7 @@ class Driver(object):
                 elif input==self.kKEY_ESC or lower=='q': self.quit = True
                 elif lower=='s': self.clock.toggle_format()
                 elif lower=='p': self.clock.toggle_punctuation()
+                elif lower=='c': self.clock.toggle_center()
 
                 elif key.isdigit(): self.clock.color = key
 
