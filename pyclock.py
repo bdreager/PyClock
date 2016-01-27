@@ -193,7 +193,9 @@ class Driver(object):
                 key = curses.keyname(input)
                 lower = key.lower()
 
-                if input == curses.KEY_RESIZE: print 'TODO'
+                if input == curses.KEY_RESIZE:
+                    self.clock.width = self.clock.width
+                    self.clock.height = self.clock.height
 
                 elif input==self.kKEY_ESC or lower=='q': self.quit = True
                 elif lower=='s': self.clock.toggle_format()
