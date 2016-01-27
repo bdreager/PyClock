@@ -62,7 +62,7 @@ class PyClock(object):
         # if self._width > self.kWIDTH_MAX: self._width = self.kWIDTH_MAX
         self.needs_update = True
 
-        num = len([int(k) for k in time.strftime(self.format)])
+        num = len(time.strftime(self.format))
         output_width = num * (self.kCHAR_WIDTH*self.width + self.width)
         if self.punctuation: output_width += (self.width + self.width)*2
         window_width = self.stdscr.getmaxyx()[1]
