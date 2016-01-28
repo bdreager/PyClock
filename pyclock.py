@@ -67,33 +67,33 @@ class PyClock(object):
     def width(self): return self._width
     @width.setter
     def width(self, value):
-        self._width = value
-        if self._width < 0: self._width = 0
-        # if self._width < self.kWIDTH_MIN: self._width = self.kWIDTH_MIN
-        # if self._width > self.kWIDTH_MAX: self._width = self.kWIDTH_MAX
-        self.needs_update = True
-
-        num = len(time.strftime(self.format))
-        output_width = num * (self.char_width*self.width + self.width)
-        if self.punctuation: output_width += (self.width + self.width)*2
         window_width = self.stdscr.getmaxyx()[1]
 
-        if output_width > window_width: self.width -= 1 #trigger setter
+        # output_width
+        # =  n_digits * char_width * width + n_puncts * width + (n_spaces - 1) * width
+        # = (n_digits * char_width + n_puncts + (n_spaces - 1)) * width
+        # => width
+        # = output_width / (n_digits * char_width + n_puncts + (n_spaces - 1))
+
+        n_digits = len(time.strftime(self.format))
+        n_puncts = 2 if self.punctuation else 0
+        n_spaces = n_digits + n_puncts
+
+        u = n_digits * self.char_width + n_puncts + (n_spaces - 1)  # no space for last char
+        max_width = window_width // u
+        self._width = min(value, max_width)
+        self._output_width = self._width * u
+        self.needs_update = True
 
     @property
     def height(self): return self._height
     @height.setter
     def height(self, value):
-        self._height = value
-        if self._height < 0: self._height = 0
-        # if self._height < self.kHEIGHT_MIN: self._height = self.kHEIGHT_MIN
-        # if self._height > self.kHEIGHT_MAX: self._height = self.kHEIGHT_MAX
-        self.needs_update = True
-
-        output_height = self.char_height * self.height + (self.height*2)
         window_height = self.stdscr.getmaxyx()[0]
-
-        if output_height > window_height: self.height -= 1 #trigger setter
+        max_height = window_height // self.char_height
+        self._height = min(value, max_height)
+        self._output_height = self._height * self.char_height
+        self.needs_update = True
 
     @property
     def color(self): return self._color
@@ -130,10 +130,8 @@ class PyClock(object):
             space_width = self.width
             if self.center:
                 screen_height, screen_width = self.stdscr.getmaxyx()
-                output_width = cur_length * (self.char_width*self.width + self.width)
-                if self.punctuation: output_width += (self.width + self.width)*2
-                x = (screen_width + 1 - output_width) // 2
-                y = (screen_height + 1 - (self.char_height * self.height)) // 2
+                x = (screen_width - self._output_width) // 2
+                y = (screen_height - self._output_height) // 2
             for i in range(cur_length):
                 if not old_time or old_time[i] != cur_time[i]: # skip numbers that haven't changed
                     self.draw_number(x, y, cur_time[i])
@@ -177,15 +175,8 @@ class PyClock(object):
 
     def view_resized(self):
         if self.auto_scale:
-            while True:
-                next_up = self.height + 1
-                self.height = next_up
-                if next_up != self.height: break
-
-            while True:
-                next_up = self.width + 1
-                self.width = next_up
-                if next_up != self.width: break
+            # setters will find the maximum width and height
+            self.height, self.width = self.stdscr.getmaxyx()
         else:
             self.width = self.width
             self.height = self.height
