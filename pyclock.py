@@ -116,9 +116,8 @@ class PyClock(object):
         while self.running:
             cur_time = [int(k) for k in time.strftime(self.format)]
             if self.needs_update or cur_time != old_time:
+                if self.needs_update: self.stdscr.clear()
                 self.needs_update = False
-                self.stdscr.clear()
-                self.stdscr.refresh()
                 old_time = None
             else:
                 time.sleep(0.01)
