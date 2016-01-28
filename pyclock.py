@@ -1,24 +1,12 @@
 #!/usr/bin/python
 
-import curses, time, sys, os
+import curses, time, os
 from random import randint
 from threading import Thread
 
 class PyClock(object):
-    # kBLOCK = '\033[7m'
-    # kRESET = '\033[0m'
-    # kCLEAR = '\033[2J\033[;H'
     kPUN_INDEX = 10
     kSQUARE = " "
-
-    # default,grey,red,green,yellow,blue,purple,cyan,white,black
-    # kCOLORS = [98,90,91,92,93,94,95,96,97,30]
-
-    # kHEIGHT_MIN = 1
-    # kHEIGHT_MAX = 10
-
-    # kWIDTH_MIN = 1
-    # kWIDTH_MAX = 20
 
     def __init__(self, stdscr):
         self._color = None
@@ -61,8 +49,8 @@ class PyClock(object):
         self.punctuation = True
         self.format = '%I%M%S'
 
-        self.width = 1 # self.kWIDTH_MIN
-        self.height = 1 # self.kHEIGHT_MIN
+        self.width = 1
+        self.height = 1
         self.color = 2
 
     @property
@@ -157,9 +145,6 @@ class PyClock(object):
             self.stdscr.refresh()
             last_time = cur_time
 
-            #curses.napms(1000) # doesn't work well/input lag
-            #time.sleep(0.01)
-
     def draw_number(self, x_origin, y_origin, template_index):
         y = y_origin
         for r in range(self.char_height):
@@ -233,7 +218,6 @@ class Driver(object):
     def __init__(self, stdscr):
         self.stdscr = stdscr
         curses.curs_set(0)
-        #curses.start_color()
         curses.use_default_colors()
 
         self.clock = PyClock(self.stdscr)
@@ -284,25 +268,3 @@ def main(stdscr):
 if __name__ == '__main__':
     os.environ.setdefault('ESCDELAY', '25')
     curses.wrapper(main)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
