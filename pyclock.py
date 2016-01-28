@@ -90,7 +90,7 @@ class PyClock(object):
         # if self._height > self.kHEIGHT_MAX: self._height = self.kHEIGHT_MAX
         self.needs_update = True
 
-        output_height = self.char_height * self.height + (self.height*2)
+        output_height = self.char_height * self.height
         window_height = self.stdscr.getmaxyx()[0]
 
         if output_height > window_height: self.height -= 1 #trigger setter
