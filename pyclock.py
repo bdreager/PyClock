@@ -70,16 +70,16 @@ class PyClock(object):
         window_width = self.stdscr.getmaxyx()[1]
 
         # output_width
-        # =  n_digits * char_width * width + n_puncts * width + n_spaces * width
-        # = (n_digits * char_width + n_puncts + n_spaces) * width
+        # =  n_digits * char_width * width + n_puncts * width + (n_spaces - 1) * width
+        # = (n_digits * char_width + n_puncts + (n_spaces - 1)) * width
         # => width
-        # = output_width / (n_digits * char_width + n_puncts + n_spaces)
+        # = output_width / (n_digits * char_width + n_puncts + (n_spaces - 1))
 
         n_digits = len(time.strftime(self.format))
         n_puncts = 2 if self.punctuation else 0
         n_spaces = n_digits + n_puncts
 
-        u = n_digits * self.char_width + n_puncts + n_spaces
+        u = n_digits * self.char_width + n_puncts + (n_spaces - 1)  # no space for last char
         max_width = window_width // u
         self._width = min(value, max_width)
         self._output_width = self._width * u
