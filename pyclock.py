@@ -21,6 +21,11 @@ class PyClock(object):
     # kWIDTH_MAX = 20
 
     def __init__(self, stdscr):
+        self._color = None
+        self._format = None
+        self._width = 0
+        self._height = 0
+
         self.stdscr = stdscr
 
         x = True
@@ -51,14 +56,11 @@ class PyClock(object):
         self.running = False
         self.needs_update = True
 
-        self._color = None
-        self._width = None
-        self._height = None
-
         self.auto_scale = False
         self.center = False
         self.punctuation = True
         self.format = '%I%M%S'
+
         self.width = 1 # self.kWIDTH_MIN
         self.height = 1 # self.kHEIGHT_MIN
         self.color = 2
@@ -75,7 +77,7 @@ class PyClock(object):
         # => width
         # = output_width / (n_digits * char_width + n_puncts + (n_spaces - 1))
 
-        n_digits = len(time.strftime(self.format))
+        n_digits = len(self.blank_time)
         n_puncts = 2 if self.punctuation else 0
         n_spaces = n_digits + n_puncts
 
@@ -103,6 +105,15 @@ class PyClock(object):
         self._color = curses.color_pair(index if index <= self.color_range+1 else randint(0, self.color_range))
         self.needs_update = True
 
+    @property
+    def format(self): return self._format
+    @format.setter
+    def format(self, value):
+        self._format = value
+        self.blank_time = [None] * len(self.format)
+        self.width = self.width # trigger setter
+        self.needs_update = True
+
     def start(self):
         self.running = True
         self.thread = Thread(target = self.run)
@@ -119,8 +130,8 @@ class PyClock(object):
             if self.needs_update:
                 self.stdscr.clear()
                 self.needs_update = False
-                old_time = None
-            elif old_time == cur_time:
+                last_time = self.blank_time
+            elif last_time == cur_time:
                 time.sleep(0.1)
                 continue
 
@@ -134,18 +145,18 @@ class PyClock(object):
                 x = (screen_width - self._output_width) // 2
                 y = (screen_height - self._output_height) // 2
             for i in range(cur_length):
-                if not old_time or old_time[i] != cur_time[i]: # skip numbers that haven't changed
+                if last_time[i] != cur_time[i]: # skip numbers that haven't changed
                     self.draw_number(x, y, cur_time[i])
 
                 x += space_width + full_width
 
                 if self.punctuation and i < pun_end and i % 2 != 0:
-                    if not old_time:
+                    if last_time == self.blank_time:
                         self.draw_punctuation(x, y, self.kPUN_INDEX)
                     x += space_width + space_width
 
             self.stdscr.refresh()
-            old_time = cur_time
+            last_time = cur_time
 
             #curses.napms(1000) # doesn't work well/input lag
             #time.sleep(0.01)
@@ -185,8 +196,6 @@ class PyClock(object):
 
     def toggle_format(self):
         self.format = '%I%M%S' if self.format == '%I%M' else '%I%M'
-        self.width = self.width # trigger setter
-        self.needs_update = True
 
     def toggle_punctuation(self):
         self.punctuation = not self.punctuation
