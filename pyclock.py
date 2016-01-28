@@ -128,6 +128,7 @@ class PyClock(object):
             cur_time = [int(k) for k in time.strftime(self.format)]
 
             if self.needs_update:
+                self.recalculate_origin()
                 self.stdscr.clear()
                 self.needs_update = False
                 last_time = self.blank_time
@@ -137,13 +138,11 @@ class PyClock(object):
 
             cur_length = len(cur_time)
             pun_end = cur_length - 2
-            x = y = 0
             full_width = self.char_width*self.width
             space_width = self.width
-            if self.center:
-                screen_height, screen_width = self.stdscr.getmaxyx()
-                x = (screen_width - self._output_width) // 2
-                y = (screen_height - self._output_height) // 2
+            x = self.origin_x
+            y = self.origin_y
+
             for i in range(cur_length):
                 if last_time[i] != cur_time[i]: # skip numbers that haven't changed
                     self.draw_number(x, y, cur_time[i])
@@ -193,6 +192,15 @@ class PyClock(object):
         else:
             self.width = self.width
             self.height = self.height
+
+    def recalculate_origin(self):
+        if self.center:
+            screen_height, screen_width = self.stdscr.getmaxyx()
+            self.origin_x = (screen_width - self._output_width) // 2
+            self.origin_y = (screen_height - self._output_height) // 2
+        else:
+            self.origin_x = 0
+            self.origin_y = 0
 
     def toggle_format(self):
         self.format = '%I%M%S' if self.format == '%I%M' else '%I%M'
