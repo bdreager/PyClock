@@ -1,14 +1,13 @@
 #!/usr/bin/python
 
 import curses, time, sys, os
+from random import randint
 from threading import Thread
 
 class PyClock(object):
     # kBLOCK = '\033[7m'
     # kRESET = '\033[0m'
     # kCLEAR = '\033[2J\033[;H'
-    kCHAR_HEIGHT = 5
-    kCHAR_WIDTH = 4
     kPUN_INDEX = 10
     kSQUARE = " "
 
@@ -23,21 +22,6 @@ class PyClock(object):
 
     def __init__(self, stdscr):
         self.stdscr = stdscr
-        self.running = False
-        self.needs_update = True
-
-        self._color = None
-        self._width = None
-        self._height = None
-
-        self.center = False
-        self.punctuation = True
-        self.format = '%I%M%S'
-        self.width = 1 # self.kWIDTH_MIN
-        self.height = 1 # self.kHEIGHT_MIN
-        self.color = 2
-
-        for i in range(10): curses.init_pair(i, -1, i)
 
         x = True
         o = False
@@ -53,6 +37,31 @@ class PyClock(object):
                            [b,d,c,d,d,d,b,d,b,d,x],
                            [a,d,a,a,d,a,a,d,a,a,o] ]
 
+        # some linux terminals throw an exception after 7, but osx supports all 10
+        try:
+            for i in range(10):
+                curses.init_pair(i, -1, i)
+                self.color_range = i
+        except:
+            pass
+
+        self.char_height = len(self.templates)
+        self.char_width = len(a)
+
+        self.running = False
+        self.needs_update = True
+
+        self._color = None
+        self._width = None
+        self._height = None
+
+        self.center = False
+        self.punctuation = True
+        self.format = '%I%M%S'
+        self.width = 1 # self.kWIDTH_MIN
+        self.height = 1 # self.kHEIGHT_MIN
+        self.color = 2
+
     @property
     def width(self): return self._width
     @width.setter
@@ -64,8 +73,9 @@ class PyClock(object):
         self.needs_update = True
 
         num = len(time.strftime(self.format))
-        output_width = num * (self.kCHAR_WIDTH*self.width + self.width)
+        output_width = num * (self.char_width*self.width + self.width)
         if self.punctuation: output_width += (self.width + self.width)*2
+        
         window_width = self.stdscr.getmaxyx()[1]
 
         if output_width > window_width: self.width -= 1 #trigger setter
@@ -80,7 +90,7 @@ class PyClock(object):
         # if self._height > self.kHEIGHT_MAX: self._height = self.kHEIGHT_MAX
         self.needs_update = True
 
-        output_height = self.kCHAR_HEIGHT * self.height + (self.height*2)
+        output_height = self.char_height * self.height + (self.height*2)
         window_height = self.stdscr.getmaxyx()[0]
 
         if output_height > window_height: self.height -= 1 #trigger setter
@@ -89,7 +99,8 @@ class PyClock(object):
     def color(self): return self._color
     @color.setter
     def color(self, value):
-        self._color = curses.color_pair(int(value))
+        index = int(value)
+        self._color = curses.color_pair(index if index <= self.color_range+1 else randint(0, self.color_range))
         self.needs_update = True
 
     def start(self):
@@ -116,14 +127,14 @@ class PyClock(object):
             cur_length = len(cur_time)
             pun_end = cur_length - 2
             x = y = 0
-            full_width = self.kCHAR_WIDTH*self.width
+            full_width = self.char_width*self.width
             space_width = self.width
             if self.center:
                 screen_height, screen_width = self.stdscr.getmaxyx()
-                output_width = cur_length * (self.kCHAR_WIDTH*self.width + self.width)
+                output_width = cur_length * (self.char_width*self.width + self.width)
                 if self.punctuation: output_width += (self.width + self.width)*2
                 x = (screen_width + 1 - output_width) // 2
-                y = (screen_height + 1 - (self.kCHAR_HEIGHT * self.height)) // 2
+                y = (screen_height + 1 - (self.char_height * self.height)) // 2
             for i in range(cur_length):
                 if not old_time or old_time[i] != cur_time[i]: # skip numbers that haven't changed
                     self.draw_number(x, y, cur_time[i])
@@ -132,7 +143,7 @@ class PyClock(object):
 
                 if self.punctuation and i < pun_end and i % 2 != 0:
                     self.draw_punctuation(x, y, self.kPUN_INDEX)
-                    x += self.width + space_width
+                    x += space_width + space_width
 
             self.stdscr.refresh()
             old_time = cur_time
@@ -142,7 +153,7 @@ class PyClock(object):
 
     def draw_number(self, x_origin, y_origin, template_index):
         y = y_origin
-        for r in range(self.kCHAR_HEIGHT):
+        for r in range(self.char_height):
             line = self.templates[r][template_index]
             length  = len(line)
             for h in range(self.height):
@@ -156,7 +167,7 @@ class PyClock(object):
 
     def draw_punctuation(self, x_origin, y_origin, template_index):
         y = y_origin
-        for r in range(self.kCHAR_HEIGHT):
+        for r in range(self.char_height):
             color = self.color if self.templates[r][template_index] else 0
             for h in range(self.height):
                 x = x_origin
