@@ -55,6 +55,7 @@ class PyClock(object):
         self._width = None
         self._height = None
 
+        self.auto_scale = False
         self.center = False
         self.punctuation = True
         self.format = '%I%M%S'
@@ -75,7 +76,6 @@ class PyClock(object):
         num = len(time.strftime(self.format))
         output_width = num * (self.char_width*self.width + self.width)
         if self.punctuation: output_width += (self.width + self.width)*2
-        
         window_width = self.stdscr.getmaxyx()[1]
 
         if output_width > window_width: self.width -= 1 #trigger setter
@@ -176,6 +176,21 @@ class PyClock(object):
                     x += 1
                 y += 1
 
+    def view_resized(self):
+        if self.auto_scale:
+            while True:
+                next_up = self.height + 1
+                self.height = next_up
+                if next_up != self.height: break
+
+            while True:
+                next_up = self.width + 1
+                self.width = next_up
+                if next_up != self.width: break
+        else:
+            self.width = self.width
+            self.height = self.height
+
     def toggle_format(self):
         self.format = '%I%M%S' if self.format == '%I%M' else '%I%M'
         self.width = self.width # trigger setter
@@ -189,6 +204,20 @@ class PyClock(object):
     def toggle_center(self):
         self.center = not self.center
         self.needs_update = True
+
+    def toggle_auto_scale(self):
+        self.auto_scale = not self.auto_scale
+        if self.auto_scale: self.view_resized()
+        self.needs_update = True
+
+    def change_width(self, amt):
+        self.width += amt
+        if self.auto_scale: self.auto_scale = False
+
+    def change_height(self, amt):
+        self.height += amt
+        if self.auto_scale: self.auto_scale = False
+
 
 class Driver(object):
     kKEY_ESC = 27
@@ -219,25 +248,24 @@ class Driver(object):
                 key = curses.keyname(input)
                 lower = key.lower()
 
-                if input == curses.KEY_RESIZE:
-                    self.clock.width = self.clock.width
-                    self.clock.height = self.clock.height
+                if input == curses.KEY_RESIZE: self.clock.view_resized()
 
                 elif input==self.kKEY_ESC or lower=='q': self.quit = True
                 elif lower=='s': self.clock.toggle_format()
                 elif lower=='p': self.clock.toggle_punctuation()
                 elif lower=='c': self.clock.toggle_center()
+                elif lower=='a': self.clock.toggle_auto_scale()
 
                 elif key.isdigit(): self.clock.color = key
 
-                elif key==',' or key=='<': self.clock.width -= 1
-                elif key=='.' or key=='>': self.clock.width += 1
+                elif key==',' or key=='<': self.clock.change_width(-1)
+                elif key=='.' or key=='>': self.clock.change_width( 1)
 
-                elif key=='[' or key=='{': self.clock.height -= 1
-                elif key==']' or key=='}': self.clock.height += 1
+                elif key=='[' or key=='{': self.clock.change_height(-1)
+                elif key==']' or key=='}': self.clock.change_height( 1)
 
-        except Exception, err:
-            print err
+        except:
+            pass
         finally:
             self.stop()
 
