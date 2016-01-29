@@ -238,12 +238,14 @@ class Driver(object):
         try:
             while self.quit != True:
                 input = self.stdscr.getch()
-                key = curses.keyname(input)
-                lower = key.lower()
 
                 if input == curses.KEY_RESIZE: self.clock.view_resized()
 
-                elif input==self.kKEY_ESC or lower=='q': self.quit = True
+                if input == -1: continue # fix for OSX exiting on terminal window resize
+                key = curses.keyname(input)
+                lower = key.lower()
+
+                if input==self.kKEY_ESC or lower=='q': self.quit = True
                 elif lower=='s': self.clock.toggle_format()
                 elif lower=='p': self.clock.toggle_punctuation()
                 elif lower=='c': self.clock.toggle_center()
