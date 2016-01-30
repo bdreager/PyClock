@@ -22,6 +22,19 @@ Keys  | Actions
 <kbd>[</kbd> or <kbd>{</kbd> | decrease height
 <kbd>]</kbd> or <kbd>}</kbd> | increase height
 
+###Command-line options
+
+Options | Descriptions
+------- | ------------
+`-h` or `--help` | show help message
+`-S` or `--no-seconds` | do not display seconds
+`-P` or `--no-punctuation` | do not display punctuation
+`-C` or `--no-center` | do not center clock display
+`-A` or `--no-auto-scale` | do not auto scale display
+`-c COLOR` or `--color COLOR` | color 0-9 (default: 2)
+`-W WIDTH` or `--width WIDTH` | scale width (default: 1)
+`-H HEIGHT` or `--height HEIGHT` | scale height (default: 1)
+
 ###Support
 
 - [x] Works on Linux completely

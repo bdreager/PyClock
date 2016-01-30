@@ -1,15 +1,24 @@
 #!/usr/bin/python
 
+import argparse
 import curses
 from random import randint
 from time import strftime
 from os import environ
 
+
+__description__ = ' A digital clock for the terminal '
+
+
 class PyClock(object):
     kPUN_INDEX = 10
     kSQUARE = " "
 
-    def __init__(self, stdscr):
+    kDEFAULT_WIDTH = 1
+    kDEFAULT_HEIGHT = 1
+    kDEFAULT_COLOR = 2
+
+    def __init__(self, stdscr, clock_args = None):
         self._color = None
         self._format = None
         self._width = 0
@@ -49,9 +58,14 @@ class PyClock(object):
         self.punctuation = True
         self.format = '%I%M%S'
 
-        self.width = 1
-        self.height = 1
-        self.color = 2
+        self.width = clock_args.width
+        self.height = clock_args.height
+        self.color = clock_args.color
+
+        if clock_args.auto_scale: self.toggle_auto_scale()
+        if clock_args.center: self.toggle_center()
+        if not clock_args.punctuation: self.toggle_punctuation()
+        if not clock_args.format: self.toggle_format()
 
     @property
     def width(self): return self._width
@@ -202,13 +216,13 @@ class PyClock(object):
 class Driver(object):
     kKEY_ESC = 27
     
-    def __init__(self, stdscr):
+    def __init__(self, stdscr, clock_args=None):
         self.stdscr = stdscr
         curses.halfdelay(10)
         curses.curs_set(0)
         curses.use_default_colors()
 
-        self.clock = PyClock(self.stdscr)
+        self.clock = PyClock(self.stdscr, clock_args)
         self.running = False
 
     def start(self):
@@ -244,9 +258,26 @@ class Driver(object):
         elif key=='[' or key=='{': self.clock.change_height(-1)
         elif key==']' or key=='}': self.clock.change_height( 1)
 
-def main(stdscr):
-    Driver(stdscr).start()
+def main(stdscr, clock_args):
+    Driver(stdscr, clock_args=clock_args).start()
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description=__description__)
+    parser.add_argument('-S', '--no-seconds', action='store_false', default=True,
+                        help='do not display seconds', dest='format')
+    parser.add_argument('-P', '--no-punctuation', action='store_false', default=True,
+                        help='do not display punctuation', dest='punctuation')
+    parser.add_argument('-C', '--no-center', action='store_false', default=True,
+                        help='do not center clock display', dest='center')
+    parser.add_argument('-A', '--no-auto-scale', action='store_false', default=True,
+                        help='do not auto scale display', dest='auto_scale')
+    parser.add_argument('-c', '--color', type=int, default=PyClock.kDEFAULT_COLOR, choices=range(10),
+                        help='color 0-9 (default: %(default)s)')
+    parser.add_argument('-W', '--width', type=int, default=PyClock.kDEFAULT_WIDTH,
+                        help='scale width (default: %(default)s)')
+    parser.add_argument('-H', '--height', type=int, default=PyClock.kDEFAULT_HEIGHT,
+                        help='scale height (default: %(default)s)')
+    args = parser.parse_args()
+
     environ.setdefault('ESCDELAY', '25')
-    curses.wrapper(main)
+    curses.wrapper(main, args)
