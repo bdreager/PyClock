@@ -1,8 +1,9 @@
 #!/usr/bin/python
 
-import curses, time, os
+import curses
 from random import randint
-from threading import Thread
+from time import strftime
+from os import environ
 
 class PyClock(object):
     kPUN_INDEX = 10
@@ -41,8 +42,7 @@ class PyClock(object):
         self.char_height = len(self.templates)
         self.char_width = len(a)
 
-        self.running = False
-        self.needs_update = True
+        self.running = self.needs_full_update = False
 
         self.auto_scale = False
         self.center = False
@@ -73,7 +73,7 @@ class PyClock(object):
         max_width = window_width // u
         self._width = min(value, max_width)
         self._output_width = self._width * u
-        self.needs_update = True
+        self.needs_full_update = True
 
     @property
     def height(self): return self._height
@@ -83,7 +83,7 @@ class PyClock(object):
         max_height = window_height // self.char_height
         self._height = min(value, max_height)
         self._output_height = self._height * self.char_height
-        self.needs_update = True
+        self.needs_full_update = True
 
     @property
     def color(self): return self._color
@@ -91,7 +91,7 @@ class PyClock(object):
     def color(self, value):
         index = int(value)
         self._color = curses.color_pair(index if index <= self.color_range+1 else randint(0, self.color_range))
-        self.needs_update = True
+        self.needs_full_update = True
 
     @property
     def format(self): return self._format
@@ -100,50 +100,38 @@ class PyClock(object):
         self._format = value
         self.blank_time = [None] * len(self.format)
         self.width = self.width # trigger setter
-        self.needs_update = True
 
-    def start(self):
-        self.running = True
-        self.thread = Thread(target = self.run)
-        self.thread.start()
+    def update(self):
+        cur_time = [int(k) for k in strftime(self.format)]
 
-    def stop(self):
-        self.running = False
+        if self.needs_full_update:
+            self.recalculate_origin()
+            self.stdscr.clear()
+            self.needs_full_update = False
+            self.last_time = self.blank_time
+        elif cur_time == self.last_time:
+            return
 
-    def run(self):
-        self.needs_update = True
-        while self.running:
-            cur_time = [int(k) for k in time.strftime(self.format)]
+        cur_length = len(cur_time)
+        pun_end = cur_length - 2
+        full_width = self.char_width*self.width
+        space_width = self.width
+        x = self.origin_x
+        y = self.origin_y
 
-            if self.needs_update:
-                self.recalculate_origin()
-                self.stdscr.clear()
-                self.needs_update = False
-                last_time = self.blank_time
-            elif last_time == cur_time:
-                time.sleep(0.1)
-                continue
+        for i in range(cur_length):
+            if self.last_time[i] != cur_time[i]: # skip numbers that haven't changed
+                self.draw_number(x, y, cur_time[i])
 
-            cur_length = len(cur_time)
-            pun_end = cur_length - 2
-            full_width = self.char_width*self.width
-            space_width = self.width
-            x = self.origin_x
-            y = self.origin_y
+            x += space_width + full_width
 
-            for i in range(cur_length):
-                if last_time[i] != cur_time[i]: # skip numbers that haven't changed
-                    self.draw_number(x, y, cur_time[i])
+            if self.punctuation and i < pun_end and i % 2 != 0:
+                if self.last_time == self.blank_time:
+                    self.draw_punctuation(x, y, self.kPUN_INDEX)
+                x += space_width + space_width
 
-                x += space_width + full_width
-
-                if self.punctuation and i < pun_end and i % 2 != 0:
-                    if last_time == self.blank_time:
-                        self.draw_punctuation(x, y, self.kPUN_INDEX)
-                    x += space_width + space_width
-
-            self.stdscr.refresh()
-            last_time = cur_time
+        self.stdscr.refresh()
+        self.last_time = cur_time
 
     def draw_number(self, x_origin, y_origin, template_index):
         y = y_origin
@@ -193,16 +181,14 @@ class PyClock(object):
     def toggle_punctuation(self):
         self.punctuation = not self.punctuation
         self.width = self.width
-        self.needs_update = True
 
     def toggle_center(self):
         self.center = not self.center
-        self.needs_update = True
+        self.needs_full_update = True
 
     def toggle_auto_scale(self):
         self.auto_scale = not self.auto_scale
         if self.auto_scale: self.view_resized()
-        self.needs_update = True
 
     def change_width(self, amt):
         self.width += amt
@@ -215,58 +201,52 @@ class PyClock(object):
 
 class Driver(object):
     kKEY_ESC = 27
+    
     def __init__(self, stdscr):
         self.stdscr = stdscr
+        curses.halfdelay(10)
         curses.curs_set(0)
         curses.use_default_colors()
 
         self.clock = PyClock(self.stdscr)
-        self.quit = True
+        self.running = False
 
     def start(self):
-        self.quit = False
-
-        self.clock.start()
-        curses.napms(100) #needed for a race condition
-
+        self.running = True
+        self.clock.needs_full_update = True
         self.run()
 
-    def stop(self):
-        self.clock.stop()
-
     def run(self):
-        try:
-            while self.quit != True:
-                input = self.stdscr.getch()
+        while self.running:
+            self.clock.update()
+            self.update()
 
-                if input == curses.KEY_RESIZE: self.clock.view_resized()
+    def update(self):
+        input = self.stdscr.getch()
 
-                if input == -1: continue # fix for OSX exiting on terminal window resize
-                key = curses.keyname(input)
-                lower = key.lower()
+        if input == curses.KEY_RESIZE: self.clock.view_resized()
 
-                if input==self.kKEY_ESC or lower=='q': self.quit = True
-                elif lower=='s': self.clock.toggle_format()
-                elif lower=='p': self.clock.toggle_punctuation()
-                elif lower=='c': self.clock.toggle_center()
-                elif lower=='a': self.clock.toggle_auto_scale()
+        if input == curses.ERR: return # fix for OSX exiting on terminal window resize
+        key = curses.keyname(input)
+        lower = key.lower()
 
-                elif key.isdigit(): self.clock.color = key
+        if input==self.kKEY_ESC or lower=='q': self.running = False
+        elif lower=='s': self.clock.toggle_format()
+        elif lower=='p': self.clock.toggle_punctuation()
+        elif lower=='c': self.clock.toggle_center()
+        elif lower=='a': self.clock.toggle_auto_scale()
 
-                elif key==',' or key=='<': self.clock.change_width(-1)
-                elif key=='.' or key=='>': self.clock.change_width( 1)
+        elif key.isdigit(): self.clock.color = key
 
-                elif key=='[' or key=='{': self.clock.change_height(-1)
-                elif key==']' or key=='}': self.clock.change_height( 1)
+        elif key==',' or key=='<': self.clock.change_width(-1)
+        elif key=='.' or key=='>': self.clock.change_width( 1)
 
-        except:
-            pass
-        finally:
-            self.stop()
+        elif key=='[' or key=='{': self.clock.change_height(-1)
+        elif key==']' or key=='}': self.clock.change_height( 1)
 
 def main(stdscr):
     Driver(stdscr).start()
 
 if __name__ == '__main__':
-    os.environ.setdefault('ESCDELAY', '25')
+    environ.setdefault('ESCDELAY', '25')
     curses.wrapper(main)
