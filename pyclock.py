@@ -57,7 +57,7 @@ class PyClock(object):
     def width(self): return self._width
     @width.setter
     def width(self, value):
-        window_width = self.stdscr.getmaxyx()[1]
+        window_width = self.stdscr.getmaxyx()[1] - 1
 
         # output_width
         # =  n_digits * char_width * width + n_puncts * width + (n_spaces - 1) * width
@@ -79,7 +79,7 @@ class PyClock(object):
     def height(self): return self._height
     @height.setter
     def height(self, value):
-        window_height = self.stdscr.getmaxyx()[0]
+        window_height = self.stdscr.getmaxyx()[0] - 1
         max_height = window_height // self.char_height
         self._height = min(value, max_height)
         self._output_height = self._height * self.char_height
