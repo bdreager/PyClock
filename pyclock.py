@@ -214,7 +214,7 @@ class PyClock(object):
 
 
 class Driver(object):
-    kKEY_ESC = 27
+    kKEY_ESC = '\x1b'
     
     def __init__(self, stdscr, clock_args=None):
         self.stdscr = stdscr
@@ -236,15 +236,18 @@ class Driver(object):
             self.update()
 
     def update(self):
-        input = self.stdscr.getch()
+        try:
+            key = self.stdscr.getkey()
+        except curses.error as e:
+            if e.message == 'no input': return
+            raise e
 
-        if input == curses.KEY_RESIZE: self.clock.view_resized()
+        if key == 'KEY_RESIZE': self.clock.view_resized()
 
-        if input == curses.ERR: return # fix for OSX exiting on terminal window resize
-        key = curses.keyname(input)
+        if key == 'ERR': return # fix for OSX exiting on terminal window resize
         lower = key.lower()
 
-        if input==self.kKEY_ESC or lower=='q': self.running = False
+        if key==self.kKEY_ESC or lower=='q': self.running = False
         elif lower=='s': self.clock.toggle_format()
         elif lower=='p': self.clock.toggle_punctuation()
         elif lower=='c': self.clock.toggle_center()
