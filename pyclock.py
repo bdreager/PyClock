@@ -1,11 +1,11 @@
 #!/usr/bin/python
 
-import argparse
-import curses
+import curses, os
 from random import randint
 from time import strftime
-from os import environ
-
+from argparse import ArgumentParser
+from ConfigParser import RawConfigParser
+from ast import literal_eval
 
 __description__ = ' A digital clock for the terminal '
 
@@ -65,7 +65,7 @@ class PyClock(object):
         if clock_args.auto_scale: self.toggle_auto_scale()
         if clock_args.center: self.toggle_center()
         if not clock_args.punctuation: self.toggle_punctuation()
-        if not clock_args.format: self.toggle_format()
+        if not clock_args.seconds: self.format = self.format.replace('%S', '')
 
     @property
     def width(self): return self._width
@@ -262,10 +262,11 @@ class Driver(object):
 def main(stdscr, clock_args):
     Driver(stdscr, clock_args=clock_args).start()
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description=__description__)
+def init_args():
+    #arguments
+    parser = ArgumentParser(description=__description__)
     parser.add_argument('-S', '--no-seconds', action='store_false', default=True,
-                        help='do not display seconds', dest='format')
+                        help='do not display seconds', dest='seconds')
     parser.add_argument('-P', '--no-punctuation', action='store_false', default=True,
                         help='do not display punctuation', dest='punctuation')
     parser.add_argument('-C', '--no-center', action='store_false', default=True,
@@ -278,7 +279,21 @@ if __name__ == '__main__':
                         help='scale width (default: %(default)s)')
     parser.add_argument('-H', '--height', type=int, default=PyClock.kDEFAULT_HEIGHT,
                         help='scale height (default: %(default)s)')
-    args = parser.parse_args()
 
-    environ.setdefault('ESCDELAY', '25')
+    #configs
+    conf_file = os.path.expanduser('~/.pyclock.conf')
+    config = RawConfigParser() # RawConfigParser needed because of time format
+    config.read([conf_file])
+    settings = dict(config.items("Settings")) if config.has_section('Settings') else {}
+
+    # correct values that might not be stored right
+    for i, item in settings.iteritems(): settings[i] = literal_eval(item)
+    parser.set_defaults(**settings)
+
+    return parser.parse_args()
+
+if __name__ == '__main__':
+    os.environ.setdefault('ESCDELAY', '25')
+
+    args = init_args()
     curses.wrapper(main, args)
