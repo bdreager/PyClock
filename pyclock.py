@@ -71,6 +71,7 @@ class PyClock(object):
     def width(self): return self._width
     @width.setter
     def width(self, value):
+        #-1 to prevent output and window from matching, causing an ERR
         window_width = self.stdscr.getmaxyx()[1] - 1
 
         # output_width
@@ -93,7 +94,7 @@ class PyClock(object):
     def height(self): return self._height
     @height.setter
     def height(self, value):
-        window_height = self.stdscr.getmaxyx()[0] - 1
+        window_height = self.stdscr.getmaxyx()[0]
         max_height = window_height // self.char_height
         self._height = min(value, max_height)
         self._output_height = self._height * self.char_height
@@ -242,12 +243,9 @@ class Driver(object):
             if e.message == 'no input': return
             raise e
 
-        if key == 'KEY_RESIZE': self.clock.view_resized()
-
-        if key == 'ERR': return # fix for OSX exiting on terminal window resize
         lower = key.lower()
-
-        if key==self.kKEY_ESC or lower=='q': self.running = False
+        if key == 'KEY_RESIZE': self.clock.view_resized()
+        elif key==self.kKEY_ESC or lower=='q': self.running = False
         elif lower=='s': self.clock.toggle_format()
         elif lower=='p': self.clock.toggle_punctuation()
         elif lower=='c': self.clock.toggle_center()
