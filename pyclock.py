@@ -17,6 +17,7 @@ class PyClock(object):
     kDEFAULT_WIDTH = 1
     kDEFAULT_HEIGHT = 1
     kDEFAULT_COLOR = 2
+    kDEFAULT_FORMAT = '%I%M%S'
 
     def __init__(self, stdscr, clock_args = None):
         self._color = None
@@ -56,7 +57,7 @@ class PyClock(object):
         self.auto_scale = False
         self.center = False
         self.punctuation = True
-        self.format = '%I%M%S'
+        self.format = clock_args.format
 
         self.width = clock_args.width
         self.height = clock_args.height
@@ -273,6 +274,10 @@ def init_args():
                         help='do not center clock display', dest='center')
     parser.add_argument('-A', '--no-auto-scale', action='store_false', default=True,
                         help='do not auto scale display', dest='auto_scale')
+    parser.add_argument('-v', '--verbose', action='store_true', default=False,
+                        help='turn on verbose output', dest='verbose')
+    parser.add_argument('-f', '--format', type=str, default=PyClock.kDEFAULT_FORMAT,
+                        help='time format (default:%(default)s)', dest='format')
     parser.add_argument('-c', '--color', type=int, default=PyClock.kDEFAULT_COLOR, choices=range(10),
                         help='color 0-9 (default: %(default)s)')
     parser.add_argument('-W', '--width', type=int, default=PyClock.kDEFAULT_WIDTH,
@@ -296,4 +301,6 @@ if __name__ == '__main__':
     os.environ.setdefault('ESCDELAY', '25')
 
     args = init_args()
+    if args.verbose: print 'args: [{}]'.format(args)
+
     curses.wrapper(main, args)
