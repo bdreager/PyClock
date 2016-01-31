@@ -297,10 +297,19 @@ def init_args():
 
     return parser.parse_args()
 
+def log(string):
+    if args.verbose: print string
+
 if __name__ == '__main__':
     os.environ.setdefault('ESCDELAY', '25')
 
     args = init_args()
-    if args.verbose: print 'args: [{}]'.format(args)
+    log('args: [{}]'.format(args))
+
+    try:
+        [int(k) for k in strftime(args.format)]
+    except:
+        log('Error: Invalid time format')
+        args.format = PyClock.kDEFAULT_FORMAT
 
     curses.wrapper(main, args)
