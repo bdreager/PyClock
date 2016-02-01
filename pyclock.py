@@ -9,6 +9,11 @@ from ast import literal_eval
 
 __description__ = ' A digital clock for the terminal '
 
+base_dir = os.path.expanduser('~/.')
+possible_configs = []
+for dir in [base_dir, base_dir+'pyclock/', base_dir+'PyClock/']:
+    for file in ['PyClock.conf', 'pyclock.conf', 'pyclockrc']:
+        possible_configs.append(dir+file)
 
 class PyClock(object):
     kPUN_INDEX = 10
@@ -264,7 +269,7 @@ def main(stdscr, clock_args):
     Driver(stdscr, clock_args=clock_args).start()
 
 def init_args():
-    #arguments
+    # arguments
     parser = ArgumentParser(description=__description__)
     parser.add_argument('-v', '--verbose', action='store_true', default=False,
                         help='turn on verbose output', dest='verbose')
@@ -285,13 +290,12 @@ def init_args():
     parser.add_argument('-H', '--height', type=int, default=PyClock.kDEFAULT_HEIGHT,
                         help='scale height (default: %(default)s)')
 
-    #configs
-    conf_file = os.path.expanduser('~/.pyclock.conf')
+    # configs
     config = RawConfigParser() # RawConfigParser needed because of time format
-    config.read([conf_file])
+    print config.read(possible_configs)
     settings = dict(config.items("Settings")) if config.has_section('Settings') else {}
 
-    # correct values that might not be stored right
+    # fix values that might not be stored correctly (i.e bools)
     for i, item in settings.iteritems(): settings[i] = literal_eval(item)
     parser.set_defaults(**settings)
 
