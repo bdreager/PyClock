@@ -12,9 +12,10 @@ __description__ = ' A digital clock for the terminal '
 # config file detection
 config_bases = [os.path.expanduser('~/.')]
 try: from xdg.BaseDirectory import xdg_config_home; config_bases.append(xdg_config_home+'/')
-finally:
-    config_file  = 'pyclock.conf'
-    possible_configs = [dir + config_file for dir in [item for base in config_bases for item in [base, base+'pyclock/', base+'PyClock/']]]
+except:
+    if os.environ.get('XDG_CONFIG_HOME', None): config_bases.append(os.environ.get('XDG_CONFIG_HOME'))
+config_file  = 'pyclock.conf'
+possible_configs = [dir + config_file for dir in [item for base in config_bases for item in [base, base+'pyclock/', base+'PyClock/']]]
 
 class PyClock(object):
     kPUN_INDEX = 10
