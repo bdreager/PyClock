@@ -7,7 +7,13 @@ from time import strftime
 from os import environ
 
 
-__description__ = ' A digital clock for the terminal '
+__program__ = 'PyClock'
+__version__ = '0.0.0'
+__description__ = 'A digital clock for the terminal'
+__author__ = 'Brandon Dreager'
+__copyright__ = 'Copyright (c) 2016 Brandon Dreager'
+__license__ = 'MIT'
+__website__ = 'https://github.com/Regaerd/PyClock'
 
 
 class PyClock(object):
