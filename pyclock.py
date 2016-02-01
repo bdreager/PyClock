@@ -9,11 +9,12 @@ from ast import literal_eval
 
 __description__ = ' A digital clock for the terminal '
 
-base_dir = os.path.expanduser('~/.')
-possible_configs = []
-for dir in [base_dir, base_dir+'pyclock/', base_dir+'PyClock/']:
-    for file in ['PyClock.conf', 'pyclock.conf', 'pyclockrc']:
-        possible_configs.append(dir+file)
+# config file detection
+config_bases = [os.path.expanduser('~/.')]
+try: from xdg.BaseDirectory import xdg_config_home; config_bases.append(xdg_config_home+'/')
+finally:
+    config_file  = 'pyclock.conf'
+    possible_configs = [dir + config_file for dir in [item for base in config_bases for item in [base, base+'pyclock/', base+'PyClock/']]]
 
 class PyClock(object):
     kPUN_INDEX = 10
@@ -292,7 +293,7 @@ def init_args():
 
     # configs
     config = RawConfigParser() # RawConfigParser needed because of time format
-    print config.read(possible_configs)
+    config.read(possible_configs)
     settings = dict(config.items("Settings")) if config.has_section('Settings') else {}
 
     # fix values that might not be stored correctly (i.e bools)
@@ -302,7 +303,7 @@ def init_args():
     return parser.parse_args()
 
 def log(string):
-    if args.verbose: print string
+    if args.verbose: print(string)
 
 if __name__ == '__main__':
     os.environ.setdefault('ESCDELAY', '25')
