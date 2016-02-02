@@ -7,7 +7,13 @@ from argparse import ArgumentParser
 from ConfigParser import RawConfigParser
 from ast import literal_eval
 
-__description__ = ' A digital clock for the terminal '
+__program__ = 'PyClock'
+__version__ = '0.0.0'
+__description__ = 'A digital clock for the terminal'
+__author__ = 'Brandon Dreager'
+__copyright__ = 'Copyright (c) 2016 Brandon Dreager'
+__license__ = 'MIT'
+__website__ = 'https://github.com/Regaerd/PyClock'
 
 # config file detection
 config_bases = [os.path.expanduser('~/.')]
@@ -53,6 +59,7 @@ class PyClock(object):
         try:
             for i in range(10):
                 curses.init_pair(i, -1, i)
+                curses.init_pair(i + 10, i, -1)
                 self.color_range = i
         except:
             pass
@@ -95,7 +102,7 @@ class PyClock(object):
 
         u = n_digits * self.char_width + n_puncts + (n_spaces - 1)  # no space for last char
         max_width = window_width // u
-        self._width = min(value, max_width)
+        self._width = max(min(value, max_width), 0)
         self._output_width = self._width * u
         self.needs_full_update = True
 
@@ -105,7 +112,7 @@ class PyClock(object):
     def height(self, value):
         window_height = self.stdscr.getmaxyx()[0]
         max_height = window_height // self.char_height
-        self._height = min(value, max_height)
+        self._height = max(min(value, max_height), 0)
         self._output_height = self._height * self.char_height
         self.needs_full_update = True
 
@@ -115,7 +122,10 @@ class PyClock(object):
     def color(self, value):
         index = int(value)
         self._color = curses.color_pair(index if index <= self.color_range+1 else randint(0, self.color_range))
+        self._color1 = curses.color_pair(index + 10 if index + 10 <= self.color_range+11 else randint(10, self.color_range+10))
         self.needs_full_update = True
+    @property
+    def color1(self): return self._color1
 
     @property
     def format(self): return self._format
@@ -142,6 +152,13 @@ class PyClock(object):
         space_width = self.width
         x = self.origin_x
         y = self.origin_y
+        if self.width * self.height == 0:
+            if self.center:
+                y, x = self.stdscr.getmaxyx()
+                y //= 2
+                x = (x - cur_length - (2 if self.punctuation else 0)) // 2
+            full_width = 1
+            space_width = 0
 
         for i in range(cur_length):
             if self.last_time[i] != cur_time[i]: # skip numbers that haven't changed
@@ -152,12 +169,19 @@ class PyClock(object):
             if self.punctuation and i < pun_end and i % 2 != 0:
                 if self.last_time == self.blank_time:
                     self.draw_punctuation(x, y, self.kPUN_INDEX)
-                x += space_width + space_width
+                if self.width * self.height == 0:
+                    x += 1
+                else:
+                    x += space_width + space_width
 
         self.stdscr.refresh()
         self.last_time = cur_time
 
     def draw_number(self, x_origin, y_origin, template_index):
+        if self.width * self.height == 0:
+            self.stdscr.addstr(y_origin, x_origin, str(template_index), self.color1)
+            return
+
         y = y_origin
         for r in range(self.char_height):
             line = self.templates[r][template_index]
@@ -172,6 +196,10 @@ class PyClock(object):
                 y += 1
 
     def draw_punctuation(self, x_origin, y_origin, template_index):
+        if self.width * self.height == 0:
+            self.stdscr.addstr(y_origin, x_origin, ':', self.color1)
+            return
+
         y = y_origin
         for r in range(self.char_height):
             color = self.color if self.templates[r][template_index] else 0
