@@ -40,6 +40,7 @@ with open(script_name) as f:
     meta = dict([m for m in meta.items() if m[0] in meta_keys])
 
 setup_d = dict(
+    long_description=open('README.rst').read(),
     classifiers=classifiers,
     scripts=[script_name],
     **meta
