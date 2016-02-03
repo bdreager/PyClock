@@ -57,7 +57,7 @@ class PyClock(object):
 
         # some linux terminals throw an exception after 7, but osx supports all 10
         try:
-            for i in range(10):
+            for i in range(256 if clock_args.color > 10 else 10):
                 curses.init_pair(i, -1, i)
                 curses.init_pair(i + 10, i, -1)
                 self.color_range = i
@@ -121,8 +121,8 @@ class PyClock(object):
     @color.setter
     def color(self, value):
         index = int(value)
-        self._color = curses.color_pair(index if index <= self.color_range+1 else randint(0, self.color_range))
-        self._color1 = curses.color_pair(index + 10 if index + 10 <= self.color_range+11 else randint(10, self.color_range+10))
+        self._color = curses.color_pair(index if index <= self.color_range else randint(0, self.color_range))
+        self._color1 = curses.color_pair(index + 10 if index + 10 <= self.color_range+10 else randint(10, self.color_range+10))
         self.needs_full_update = True
     @property
     def color1(self): return self._color1
@@ -322,8 +322,8 @@ def init_args():
                         help='do not auto scale display', dest='auto_scale')
     parser.add_argument('-a', '--auto-scale', action='store_true', default=True,
                         help='auto scale display', dest='auto_scale')
-    parser.add_argument('-k', '--color', type=int, default=PyClock.kDEFAULT_COLOR, choices=range(10),
-                        help='color 0-9 (default: %(default)s)')
+    parser.add_argument('-k', '--color', type=int, default=PyClock.kDEFAULT_COLOR, choices=range(256),
+                        help='color 0-255 (default: %(default)s)', metavar='COLOR')
     parser.add_argument('-f', '--format', type=str, default=PyClock.kDEFAULT_FORMAT,
                         help='time format (default:%(default)s)', dest='format')
     parser.add_argument('-W', '--width', type=int, default=PyClock.kDEFAULT_WIDTH,
