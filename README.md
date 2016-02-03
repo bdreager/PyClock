@@ -27,12 +27,17 @@ Keys  | Actions
 Options | Descriptions
 ------- | ------------
 `-h` or `--help` | show help message
+`-V` or `--no-verbose` | do not print debug info
 `-v` or `--verbose` | print debug info
 `-S` or `--no-seconds` | do not display seconds
+`-s` or `--seconds` | display seconds
 `-P` or `--no-punctuation` | do not display punctuation
+`-p` or `--punctuation` | display punctuation
 `-C` or `--no-center` | do not center clock display
+`-c` or `--center` | center clock display
 `-A` or `--no-auto-scale` | do not auto scale display
-`-c COLOR` or `--color COLOR` | color 0-9 (default: 2)
+`-a` or `--auto-scale` | auto scale display
+`-k COLOR` or `--color COLOR` | color 0-9 (default: 2)
 `-f FORMAT` or `--format FORMAT` | time format (default: %I%M%S)
 `-W WIDTH` or `--width WIDTH` | scale width (default: 1)
 `-H HEIGHT` or `--height HEIGHT` | scale height (default: 1)
@@ -43,5 +48,4 @@ Options | Descriptions
 
 - [x] Works on OSX completely
 
-- [ ] Will not work on Windows due to special characters
-######Windows support is a very low priority
+- [ ] Windows not supported

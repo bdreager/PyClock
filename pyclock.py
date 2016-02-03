@@ -302,17 +302,27 @@ def main(stdscr, clock_args):
 def init_args():
     # arguments
     parser = ArgumentParser(description=__description__)
+    parser.add_argument('-V', '--no-verbose', action='store_false', default=False,
+                        help='turn off verbose output', dest='verbose')
     parser.add_argument('-v', '--verbose', action='store_true', default=False,
                         help='turn on verbose output', dest='verbose')
     parser.add_argument('-S', '--no-seconds', action='store_false', default=True,
                         help='do not display seconds', dest='seconds')
+    parser.add_argument('-s', '--seconds', action='store_true', default=True,
+                        help='display seconds', dest='seconds')
     parser.add_argument('-P', '--no-punctuation', action='store_false', default=True,
                         help='do not display punctuation', dest='punctuation')
+    parser.add_argument('-p', '--punctuation', action='store_true', default=True,
+                        help='display punctuation', dest='punctuation')
     parser.add_argument('-C', '--no-center', action='store_false', default=True,
                         help='do not center clock display', dest='center')
+    parser.add_argument('-c', '--center', action='store_true', default=True,
+                        help='center clock display', dest='center')
     parser.add_argument('-A', '--no-auto-scale', action='store_false', default=True,
                         help='do not auto scale display', dest='auto_scale')
-    parser.add_argument('-c', '--color', type=int, default=PyClock.kDEFAULT_COLOR, choices=range(10),
+    parser.add_argument('-a', '--auto-scale', action='store_true', default=True,
+                        help='auto scale display', dest='auto_scale')
+    parser.add_argument('-k', '--color', type=int, default=PyClock.kDEFAULT_COLOR, choices=range(10),
                         help='color 0-9 (default: %(default)s)')
     parser.add_argument('-f', '--format', type=str, default=PyClock.kDEFAULT_FORMAT,
                         help='time format (default:%(default)s)', dest='format')
