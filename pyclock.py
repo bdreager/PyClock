@@ -31,13 +31,14 @@ class PyClock(object):
     kDEFAULT_WIDTH = 1
     kDEFAULT_HEIGHT = 1
     kDEFAULT_COLOR = 2
+    kFORE_COLOR_OFFSET = 10
     kDEFAULT_FORMAT = '%I%M%S'
 
     def __init__(self, stdscr, clock_args = None):
-        self._color = None
         self._format = None
         self._width = 0
         self._height = 0
+        self._color_index = 0
 
         self.stdscr = stdscr
 
@@ -59,7 +60,7 @@ class PyClock(object):
         try:
             for i in range(256 if clock_args.color > 10 else 10):
                 curses.init_pair(i, -1, i)
-                curses.init_pair(i + 10, i, -1)
+                curses.init_pair(i + self.kFORE_COLOR_OFFSET, i, -1)
                 self.color_range = i
         except:
             pass
@@ -76,7 +77,7 @@ class PyClock(object):
 
         self.width = clock_args.width
         self.height = clock_args.height
-        self.color = clock_args.color
+        self.color_index = clock_args.color
 
         if clock_args.auto_scale: self.toggle_auto_scale()
         if clock_args.center: self.toggle_center()
@@ -89,12 +90,6 @@ class PyClock(object):
     def width(self, value):
         #-1 to prevent output and window from matching, causing an ERR
         window_width = self.stdscr.getmaxyx()[1] - 1
-
-        # output_width
-        # =  n_digits * char_width * width + n_puncts * width + (n_spaces - 1) * width
-        # = (n_digits * char_width + n_puncts + (n_spaces - 1)) * width
-        # => width
-        # = output_width / (n_digits * char_width + n_puncts + (n_spaces - 1))
 
         n_digits = len(self.blank_time)
         n_puncts = 2 if self.punctuation else 0
@@ -117,15 +112,14 @@ class PyClock(object):
         self.needs_full_update = True
 
     @property
-    def color(self): return self._color
-    @color.setter
-    def color(self, value):
-        index = int(value)
-        self._color = curses.color_pair(index if index <= self.color_range else randint(0, self.color_range))
-        self._color1 = curses.color_pair(index + 10 if index + 10 <= self.color_range+10 else randint(10, self.color_range+10))
+    def color_index(self): return self._color_index
+    @color_index.setter
+    def color_index(self, value):
+        self._color_index = value if value <= self.color_range else randint(0, self.color_range)
+
+        self.back_color = curses.color_pair(self._color_index)
+        self.fore_color = curses.color_pair(self._color_index + self.kFORE_COLOR_OFFSET)
         self.needs_full_update = True
-    @property
-    def color1(self): return self._color1
 
     @property
     def format(self): return self._format
@@ -179,7 +173,7 @@ class PyClock(object):
 
     def draw_number(self, x_origin, y_origin, template_index):
         if self.width * self.height == 0:
-            self.stdscr.addstr(y_origin, x_origin, str(template_index), self.color1)
+            self.stdscr.addstr(y_origin, x_origin, str(template_index), self.fore_color)
             return
 
         y = y_origin
@@ -189,7 +183,7 @@ class PyClock(object):
             for h in range(self.height):
                 x = x_origin
                 for c in range(length):
-                    color = self.color if line[c] else 0
+                    color = self.back_color if line[c] else 0
                     for w in range(self.width):
                         self.stdscr.addstr(y, x, self.kSQUARE, color)
                         x += 1
@@ -197,12 +191,12 @@ class PyClock(object):
 
     def draw_punctuation(self, x_origin, y_origin, template_index):
         if self.width * self.height == 0:
-            self.stdscr.addstr(y_origin, x_origin, ':', self.color1)
+            self.stdscr.addstr(y_origin, x_origin, ':', self.fore_color)
             return
 
         y = y_origin
         for r in range(self.char_height):
-            color = self.color if self.templates[r][template_index] else 0
+            color = self.back_color if self.templates[r][template_index] else 0
             for h in range(self.height):
                 x = x_origin
                 for w in range(self.width):
@@ -288,13 +282,16 @@ class Driver(object):
         elif lower=='c': self.clock.toggle_center()
         elif lower=='a': self.clock.toggle_auto_scale()
 
-        elif key.isdigit(): self.clock.color = key
+        elif key.isdigit(): self.clock.color_index = int(key)
 
         elif key==',' or key=='<': self.clock.change_width(-1)
         elif key=='.' or key=='>': self.clock.change_width( 1)
 
         elif key=='[' or key=='{': self.clock.change_height(-1)
         elif key==']' or key=='}': self.clock.change_height( 1)
+
+        elif key=='-' or key=='_': self.clock.color_index -= 1
+        elif key=='=' or key=='+': self.clock.color_index += 1
 
 def main(stdscr, clock_args):
     Driver(stdscr, clock_args=clock_args).start()

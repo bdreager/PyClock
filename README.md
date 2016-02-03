@@ -21,6 +21,9 @@ Keys  | Actions
 <kbd>></kbd> or <kbd>.</kbd> | increase width
 <kbd>[</kbd> or <kbd>{</kbd> | decrease height
 <kbd>]</kbd> or <kbd>}</kbd> | increase height
+<kbd>-</kbd> or <kbd>_</kbd> | change color down
+<kbd>=</kbd> or <kbd>+</kbd> | change color up
+
 
 ###Command-line options
 
