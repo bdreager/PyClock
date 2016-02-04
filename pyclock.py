@@ -99,6 +99,7 @@ class PyClock(object):
         max_width = window_width // u
         self._width = max(min(value, max_width), 0)
         self._output_width = self._width * u
+        self.minimal_mode = self.width * self.height == 0
         self.needs_full_update = True
 
     @property
@@ -109,6 +110,7 @@ class PyClock(object):
         max_height = window_height // self.char_height
         self._height = max(min(value, max_height), 0)
         self._output_height = self._height * self.char_height
+        self.minimal_mode = self.width * self.height == 0
         self.needs_full_update = True
 
     @property
@@ -133,6 +135,9 @@ class PyClock(object):
 
         if self.needs_full_update:
             self.recalculate_origin()
+            self.full_delimiter_width = 1 if self.minimal_mode else self.width*2
+            self.full_char_width =  1 if self.minimal_mode else self.char_width*self.width + self.width
+
             self.stdscr.clear()
             self.needs_full_update = False
             self.last_time = self.blank_time
@@ -141,37 +146,27 @@ class PyClock(object):
 
         cur_length = len(cur_time)
         pun_end = cur_length - 2
-        full_width = self.char_width*self.width
-        space_width = self.width
+
         x = self.origin_x
         y = self.origin_y
-        if self.width * self.height == 0:
-            if self.center:
-                y, x = self.stdscr.getmaxyx()
-                y //= 2
-                x = (x - cur_length - (2 if self.punctuation else 0)) // 2
-            full_width = 1
-            space_width = 0
 
         for i in range(cur_length):
             if self.last_time[i] != cur_time[i]: # skip numbers that haven't changed
                 self.draw_number(x, y, cur_time[i])
 
-            x += space_width + full_width
+            x += self.full_char_width
 
             if self.punctuation and i < pun_end and i % 2 != 0:
                 if self.last_time == self.blank_time:
                     self.draw_punctuation(x, y, self.kPUN_INDEX)
-                if self.width * self.height == 0:
-                    x += 1
-                else:
-                    x += space_width + space_width
+
+                x += self.full_delimiter_width
 
         self.stdscr.refresh()
         self.last_time = cur_time
 
     def draw_number(self, x_origin, y_origin, template_index):
-        if self.width * self.height == 0:
+        if self.minimal_mode:
             try: self.stdscr.addstr(y_origin, x_origin, str(template_index), self.f_color)
             except: pass
             return
@@ -190,7 +185,7 @@ class PyClock(object):
                 y += 1
 
     def draw_punctuation(self, x_origin, y_origin, template_index):
-        if self.width * self.height == 0:
+        if self.minimal_mode:
             try: self.stdscr.addstr(y_origin, x_origin, ':', self.f_color)
             except: pass
             return
@@ -216,8 +211,12 @@ class PyClock(object):
     def recalculate_origin(self):
         if self.center:
             screen_height, screen_width = self.stdscr.getmaxyx()
-            self.origin_x = (screen_width - self._output_width) // 2
-            self.origin_y = (screen_height - self._output_height) // 2
+            if self.minimal_mode:
+                self.origin_x = (screen_width - len(self.blank_time) - (2 if self.punctuation else 0)) // 2
+                self.origin_y = screen_height // 2
+            else:
+                self.origin_x = (screen_width - self._output_width) // 2
+                self.origin_y = (screen_height - self._output_height) // 2
         else:
             self.origin_x = 0
             self.origin_y = 0
@@ -283,14 +282,13 @@ class Driver(object):
         elif lower=='c': self.clock.toggle_center()
         elif lower=='a': self.clock.toggle_auto_scale()
 
-        elif key.isdigit(): self.clock.color_index = int(key)
-
         elif key==',' or key=='<': self.clock.change_width(-1)
         elif key=='.' or key=='>': self.clock.change_width( 1)
 
         elif key=='[' or key=='{': self.clock.change_height(-1)
         elif key==']' or key=='}': self.clock.change_height( 1)
 
+        elif key.isdigit():        self.clock.color_index = int(key)
         elif key=='-' or key=='_': self.clock.color_index -= 1
         elif key=='=' or key=='+': self.clock.color_index += 1
         elif key=='`' or key=='~': self.clock.color_index = randint(0, self.clock.color_range)
