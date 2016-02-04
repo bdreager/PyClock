@@ -301,7 +301,8 @@ def main(stdscr, clock_args):
 
 def init_args():
     # arguments
-    parser = ArgumentParser(description=__description__)
+    parser = ArgumentParser(prog=__program__, description=__description__)
+    parser.add_argument('--version', action='version', version='%(prog)s ' + __version__)
     parser.add_argument('-V', '--no-verbose', action='store_false', default=False,
                         help='turn off verbose output', dest='verbose')
     parser.add_argument('-v', '--verbose', action='store_true', default=False,
