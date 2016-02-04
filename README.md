@@ -21,6 +21,10 @@ Keys  | Actions
 <kbd>></kbd> or <kbd>.</kbd> | increase width
 <kbd>[</kbd> or <kbd>{</kbd> | decrease height
 <kbd>]</kbd> or <kbd>}</kbd> | increase height
+<kbd>-</kbd> or <kbd>_</kbd> | change color down
+<kbd>=</kbd> or <kbd>+</kbd> | change color up
+<kbd>`</kbd> or <kbd>~</kbd> | random color
+
 
 ###Command-line options
 
@@ -37,7 +41,7 @@ Options | Descriptions
 `-c` or `--center` | center clock display
 `-A` or `--no-auto-scale` | do not auto scale display
 `-a` or `--auto-scale` | auto scale display
-`-k COLOR` or `--color COLOR` | color 0-9 (default: 2)
+`-k COLOR` or `--color COLOR` | color 0-255 (default: 2)
 `-f FORMAT` or `--format FORMAT` | time format (default: %I%M%S)
 `-W WIDTH` or `--width WIDTH` | scale width (default: 1)
 `-H HEIGHT` or `--height HEIGHT` | scale height (default: 1)
