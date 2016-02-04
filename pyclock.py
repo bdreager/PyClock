@@ -88,8 +88,7 @@ class PyClock(object):
     def width(self): return self._width
     @width.setter
     def width(self, value):
-        #-1 to prevent output and window from matching, causing an ERR
-        window_width = self.stdscr.getmaxyx()[1] - 1
+        window_width = self.stdscr.getmaxyx()[1]
 
         n_digits = len(self.blank_time)
         n_puncts = 2 if self.punctuation else 0
@@ -180,7 +179,8 @@ class PyClock(object):
                 for c in range(length):
                     color = self.b_color if line[c] else 0
                     for w in range(self.width):
-                        self.stdscr.addstr(y, x, self.kSQUARE, color)
+                        try: self.stdscr.addstr(y, x, self.kSQUARE, color)
+                        except: pass
                         x += 1
                 y += 1
 
