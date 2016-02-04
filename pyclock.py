@@ -4,8 +4,10 @@ import curses, os
 from random import randint
 from time import strftime
 from argparse import ArgumentParser
-from ConfigParser import RawConfigParser
 from ast import literal_eval
+
+try:    from ConfigParser import RawConfigParser
+except: from configparser import RawConfigParser
 
 __program__ = 'PyClock'
 __version__ = '0.0.0'
@@ -170,7 +172,8 @@ class PyClock(object):
 
     def draw_number(self, x_origin, y_origin, template_index):
         if self.width * self.height == 0:
-            self.stdscr.addstr(y_origin, x_origin, str(template_index), self.f_color)
+            try: self.stdscr.addstr(y_origin, x_origin, str(template_index), self.f_color)
+            except: pass
             return
 
         y = y_origin
@@ -188,7 +191,8 @@ class PyClock(object):
 
     def draw_punctuation(self, x_origin, y_origin, template_index):
         if self.width * self.height == 0:
-            self.stdscr.addstr(y_origin, x_origin, ':', self.f_color)
+            try: self.stdscr.addstr(y_origin, x_origin, ':', self.f_color)
+            except: pass
             return
 
         y = y_origin
@@ -268,7 +272,7 @@ class Driver(object):
         try:
             key = self.stdscr.getkey()
         except curses.error as e:
-            if e.message == 'no input': return
+            if str(e) == 'no input': return
             raise e
 
         lower = key.lower()
@@ -332,7 +336,7 @@ def init_args():
     settings = dict(config.items("Settings")) if config.has_section('Settings') else {}
 
     # fix values that might not be stored correctly (i.e bools)
-    for i, item in settings.iteritems(): settings[i] = literal_eval(item)
+    for i, item in settings.items(): settings[i] = literal_eval(item)
     parser.set_defaults(**settings)
 
     return parser.parse_args()
