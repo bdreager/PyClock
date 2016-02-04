@@ -31,7 +31,6 @@ class PyClock(object):
     kDEFAULT_WIDTH = 1
     kDEFAULT_HEIGHT = 1
     kDEFAULT_COLOR = 2
-    kFORE_COLOR_OFFSET = 10
     kDEFAULT_FORMAT = '%I%M%S'
 
     def __init__(self, stdscr, clock_args = None):
@@ -59,8 +58,7 @@ class PyClock(object):
         # some linux terminals throw an exception after 7, but osx supports all 10
         try:
             for i in range(256 if clock_args.color > 10 else 10):
-                curses.init_pair(i, -1, i)
-                curses.init_pair(i + self.kFORE_COLOR_OFFSET, i, -1)
+                curses.init_pair(i+1, i, -1)
                 self.color_range = i
         except:
             pass
@@ -115,10 +113,9 @@ class PyClock(object):
     def color_index(self): return self._color_index
     @color_index.setter
     def color_index(self, value):
-        self._color_index = value if value <= self.color_range else randint(0, self.color_range)
-
-        self.back_color = curses.color_pair(self._color_index)
-        self.fore_color = curses.color_pair(self._color_index + self.kFORE_COLOR_OFFSET)
+        self._color_index = 0 if value > self.color_range else self.color_range if value < 0 else value
+        self.f_color = curses.color_pair(self._color_index)
+        self.b_color = curses.A_REVERSE | self.f_color
         self.needs_full_update = True
 
     @property
@@ -173,7 +170,7 @@ class PyClock(object):
 
     def draw_number(self, x_origin, y_origin, template_index):
         if self.width * self.height == 0:
-            self.stdscr.addstr(y_origin, x_origin, str(template_index), self.fore_color)
+            self.stdscr.addstr(y_origin, x_origin, str(template_index), self.f_color)
             return
 
         y = y_origin
@@ -183,7 +180,7 @@ class PyClock(object):
             for h in range(self.height):
                 x = x_origin
                 for c in range(length):
-                    color = self.back_color if line[c] else 0
+                    color = self.b_color if line[c] else 0
                     for w in range(self.width):
                         self.stdscr.addstr(y, x, self.kSQUARE, color)
                         x += 1
@@ -191,12 +188,12 @@ class PyClock(object):
 
     def draw_punctuation(self, x_origin, y_origin, template_index):
         if self.width * self.height == 0:
-            self.stdscr.addstr(y_origin, x_origin, ':', self.fore_color)
+            self.stdscr.addstr(y_origin, x_origin, ':', self.f_color)
             return
 
         y = y_origin
         for r in range(self.char_height):
-            color = self.back_color if self.templates[r][template_index] else 0
+            color = self.b_color if self.templates[r][template_index] else 0
             for h in range(self.height):
                 x = x_origin
                 for w in range(self.width):
@@ -292,6 +289,7 @@ class Driver(object):
 
         elif key=='-' or key=='_': self.clock.color_index -= 1
         elif key=='=' or key=='+': self.clock.color_index += 1
+        elif key=='`' or key=='~': self.clock.color_index = randint(0, self.clock.color_range)
 
 def main(stdscr, clock_args):
     Driver(stdscr, clock_args=clock_args).start()

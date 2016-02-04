@@ -23,6 +23,7 @@ Keys  | Actions
 <kbd>]</kbd> or <kbd>}</kbd> | increase height
 <kbd>-</kbd> or <kbd>_</kbd> | change color down
 <kbd>=</kbd> or <kbd>+</kbd> | change color up
+<kbd>`</kbd> or <kbd>~</kbd> | random color
 
 
 ###Command-line options
