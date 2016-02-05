@@ -25,7 +25,6 @@ Keys  | Actions
 <kbd>=</kbd> or <kbd>+</kbd> | change color up
 <kbd>`</kbd> or <kbd>~</kbd> | random color
 
-
 ###Command-line options
 
 Options | Descriptions
@@ -45,6 +44,10 @@ Options | Descriptions
 `-f FORMAT` or `--format FORMAT` | time format (default: %I%M%S)
 `-W WIDTH` or `--width WIDTH` | scale width (default: 1)
 `-H HEIGHT` or `--height HEIGHT` | scale height (default: 1)
+
+###Configuration file
+
+Check out ```example.pyclock.conf``` for details.
 
 ###Support
 

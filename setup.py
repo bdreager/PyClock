@@ -14,7 +14,9 @@ classifiers = [
     'Programming Language :: Python :: 2.7',
     'Programming Language :: Python :: 3',
     'Topic :: Utilities',
+    'Topic :: Terminals',
 ]
+keywords=['terminal', 'clock']
 
 with open(script_name) as f:
     meta = dict(
@@ -43,6 +45,8 @@ setup_d = dict(
     long_description=open('README.rst').read(),
     classifiers=classifiers,
     scripts=[script_name],
+    keywords=keywords,
+
     **meta
 )
 
