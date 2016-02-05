@@ -10,7 +10,7 @@ try:    from ConfigParser import RawConfigParser
 except: from configparser import RawConfigParser
 
 __program__ = 'PyClock'
-__version__ = '0.0.0'
+__version__ = '1.0.0'
 __description__ = 'A digital clock for the terminal'
 __author__ = 'Brandon Dreager'
 __copyright__ = 'Copyright (c) 2016 Brandon Dreager'
