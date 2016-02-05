@@ -86,7 +86,7 @@ Command-line options
 Configuration file
 ~~~~~~~~~~~~~~~~~~
 
-Check out ```example.pyclock.conf``` for details.
+Check out ``example.pyclock.conf`` for details.
 
 Support
 ~~~~~~~
