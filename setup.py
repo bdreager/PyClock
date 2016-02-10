@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-from distutils.core import setup
+try: from setuptools import setup
+except ImportError: from distutils.core import setup
 
 script_name = 'pyclock.py'
 classifiers = [
@@ -37,8 +38,7 @@ with open(script_name) as f:
             del meta[old]
 
     # keep these
-    meta_keys = ['name', 'description', 'version', 'license', 'url', 'author',
-                 'author_email']
+    meta_keys = ['name', 'description', 'version', 'license', 'url', 'author', 'author_email']
     meta = dict([m for m in meta.items() if m[0] in meta_keys])
 
 setup_d = dict(
@@ -46,6 +46,7 @@ setup_d = dict(
     classifiers=classifiers,
     scripts=[script_name],
     keywords=keywords,
+    entry_points={'console_scripts': ['pyclock=pyclock:main']},
 
     **meta
 )

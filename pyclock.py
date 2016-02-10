@@ -13,6 +13,7 @@ __program__ = 'PyClock'
 __version__ = '1.0.0'
 __description__ = 'A digital clock for the terminal'
 __author__ = 'Brandon Dreager'
+__author_email__ ='pyclock@subol.es'
 __copyright__ = 'Copyright (c) 2016 Brandon Dreager'
 __license__ = 'MIT'
 __website__ = 'https://github.com/Regaerd/PyClock'
@@ -293,17 +294,10 @@ class Driver(object):
         elif key=='=' or key=='+': self.clock.color_index += 1
         elif key=='`' or key=='~': self.clock.color_index = randint(0, self.clock.color_range)
 
-def main(stdscr, clock_args):
-    Driver(stdscr, clock_args=clock_args).start()
-
 def init_args():
     # arguments
     parser = ArgumentParser(prog=__program__, description=__description__)
     parser.add_argument('--version', action='version', version='%(prog)s ' + __version__)
-    parser.add_argument('-V', '--no-verbose', action='store_false', default=False,
-                        help='turn off verbose output', dest='verbose')
-    parser.add_argument('-v', '--verbose', action='store_true', default=False,
-                        help='turn on verbose output', dest='verbose')
     parser.add_argument('-S', '--no-seconds', action='store_false', default=True,
                         help='do not display seconds', dest='seconds')
     parser.add_argument('-s', '--seconds', action='store_true', default=True,
@@ -340,19 +334,16 @@ def init_args():
 
     return parser.parse_args()
 
-def log(string):
-    if args.verbose: print(string)
+args = init_args()
 
-if __name__ == '__main__':
-    os.environ.setdefault('ESCDELAY', '25')
+def main(stdscr=None):
+    if not stdscr: curses.wrapper(main)
+    else:
+        os.environ.setdefault('ESCDELAY', '25')
 
-    args = init_args()
-    log('args: [{}]'.format(args))
+        try: [int(k) for k in strftime(args.format)]
+        except:  args.format = PyClock.kDEFAULT_FORMAT
 
-    try:
-        [int(k) for k in strftime(args.format)]
-    except:
-        log('Error: Invalid time format')
-        args.format = PyClock.kDEFAULT_FORMAT
+        Driver(stdscr, clock_args=args).start()
 
-    curses.wrapper(main, args)
+if __name__ == '__main__': main()
