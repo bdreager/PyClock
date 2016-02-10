@@ -166,7 +166,7 @@ class PyClock(object):
 
     def draw_number(self, x_origin, y_origin, template_index):
         if self.minimal_mode:
-            try: self.stdscr.addstr(y_origin, x_origin, str(template_index), self.f_color)
+            try: self.stdscr.addch(y_origin, x_origin, str(template_index), self.f_color)
             except: pass
             return
 
@@ -179,14 +179,14 @@ class PyClock(object):
                 for c in range(length):
                     color = self.b_color if line[c] else 0
                     for w in range(self.width):
-                        try: self.stdscr.addstr(y, x, self.kSQUARE, color)
+                        try: self.stdscr.addch(y, x, self.kSQUARE, color)
                         except: pass
                         x += 1
                 y += 1
 
     def draw_punctuation(self, x_origin, y_origin, template_index):
         if self.minimal_mode:
-            try: self.stdscr.addstr(y_origin, x_origin, ':', self.f_color)
+            try: self.stdscr.addch(y_origin, x_origin, ':', self.f_color)
             except: pass
             return
 
@@ -196,7 +196,7 @@ class PyClock(object):
             for h in range(self.height):
                 x = x_origin
                 for w in range(self.width):
-                    self.stdscr.addstr(y, x, self.kSQUARE, color)
+                    self.stdscr.addch(y, x, self.kSQUARE, color)
                     x += 1
                 y += 1
 
