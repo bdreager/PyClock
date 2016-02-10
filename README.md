@@ -11,27 +11,25 @@ python pyclock.py
 
 Keys  | Actions
 ----- | -------
-<kbd>q</kbd> or <kbd>Q</kbd> | quit
-<kbd>s</kbd> or <kbd>S</kbd> | toggle seconds
-<kbd>p</kbd> or <kbd>P</kbd> | toggle punctuation
-<kbd>c</kbd> or <kbd>C</kbd> | toggle center display
-<kbd>a</kbd> or <kbd>A</kbd> | toggle auto scale display
-<kbd>0</kbd> to <kbd>9</kbd> | change color
-<kbd><</kbd> or <kbd>,</kbd> | decrease width
-<kbd>></kbd> or <kbd>.</kbd> | increase width
-<kbd>[</kbd> or <kbd>{</kbd> | decrease height
-<kbd>]</kbd> or <kbd>}</kbd> | increase height
-<kbd>-</kbd> or <kbd>_</kbd> | change color down
-<kbd>=</kbd> or <kbd>+</kbd> | change color up
-<kbd>`</kbd> or <kbd>~</kbd> | random color
+<kbd>q</kbd> or <kbd>Q</kbd> or <kbd>Esc</kbd> | quit
+<kbd>s</kbd> or <kbd>S</kbd>                   | toggle seconds
+<kbd>p</kbd> or <kbd>P</kbd>                   | toggle punctuation
+<kbd>c</kbd> or <kbd>C</kbd>                   | toggle center display
+<kbd>a</kbd> or <kbd>A</kbd>                   | toggle auto scale display
+<kbd>0</kbd> to <kbd>9</kbd>                   | change color
+<kbd><</kbd> or <kbd>,</kbd>                   | decrease width
+<kbd>></kbd> or <kbd>.</kbd>                   | increase width
+<kbd>[</kbd> or <kbd>{</kbd>                   | decrease height
+<kbd>]</kbd> or <kbd>}</kbd>                   | increase height
+<kbd>-</kbd> or <kbd>_</kbd>                   | change color down
+<kbd>=</kbd> or <kbd>+</kbd>                   | change color up
+<kbd>`</kbd> or <kbd>~</kbd>                   | random color
 
 ###Command-line options
 
 Options | Descriptions
 ------- | ------------
 `-h` or `--help` | show help message
-`-V` or `--no-verbose` | do not print debug info
-`-v` or `--verbose` | print debug info
 `-S` or `--no-seconds` | do not display seconds
 `-s` or `--seconds` | display seconds
 `-P` or `--no-punctuation` | do not display punctuation
