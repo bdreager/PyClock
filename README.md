@@ -16,6 +16,7 @@ Keys  | Actions
 <kbd>p</kbd> or <kbd>P</kbd>                   | toggle punctuation
 <kbd>c</kbd> or <kbd>C</kbd>                   | toggle center display
 <kbd>a</kbd> or <kbd>A</kbd>                   | toggle auto scale display
+<kbd>m</kbd> or <kbd>M</kbd>                   | toggle AM/PM
 <kbd>0</kbd> to <kbd>9</kbd>                   | change color
 <kbd><</kbd> or <kbd>,</kbd>                   | decrease width
 <kbd>></kbd> or <kbd>.</kbd>                   | increase width
@@ -38,6 +39,8 @@ Options | Descriptions
 `-c` or `--center` | center clock display
 `-A` or `--no-auto-scale` | do not auto scale display
 `-a` or `--auto-scale` | auto scale display
+`-M` or `--no-meridiem` | do not display AM/PM
+`-m` or `--meridiem` | display AM/PM
 `-k COLOR` or `--color COLOR` | color 0-255 (default: 2)
 `-f FORMAT` or `--format FORMAT` | time format (default: %I%M%S)
 `-W WIDTH` or `--width WIDTH` | scale width (default: 1)

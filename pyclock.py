@@ -58,8 +58,7 @@ class PyClock(object):
                            [b,d,c,d,d,d,b,d,b,d,x],
                            [a,d,a,a,d,a,a,d,a,a,o] ]
 
-        # some linux terminals throw an exception after 7, but osx supports all 10
-        try:
+        try: # needed for terminals that don't support all color options
             for i in range(256 if clock_args.color > 10 else 10):
                 curses.init_pair(i+1, i, -1)
                 self.color_range = i
@@ -73,7 +72,9 @@ class PyClock(object):
 
         self.auto_scale = False
         self.center = False
-        self.punctuation = True
+        self.punctuation = clock_args.punctuation
+        self.meridiem_on = clock_args.meridiem
+        self.meridiem_top = True
         self.format = clock_args.format
 
         self.width = clock_args.width
@@ -82,7 +83,6 @@ class PyClock(object):
 
         if clock_args.auto_scale: self.toggle_auto_scale()
         if clock_args.center: self.toggle_center()
-        if not clock_args.punctuation: self.toggle_punctuation()
         if not clock_args.seconds: self.format = self.format.replace('%S', '')
 
     @property
@@ -94,11 +94,12 @@ class PyClock(object):
         n_digits = len(self.blank_time)
         n_puncts = 2 if self.punctuation else 0
         n_spaces = n_digits + n_puncts
+        n_meridi = 2 if self.meridiem_on else 0
 
-        u = n_digits * self.char_width + n_puncts + (n_spaces - 1)  # no space for last char
-        max_width = window_width // u
+        scalable_w = n_digits * self.char_width + n_puncts + (n_spaces - 1)
+        max_width = window_width / (scalable_w + n_meridi)
         self._width = max(min(value, max_width), 0)
-        self._output_width = self._width * u
+        self._output_width = (self._width * scalable_w) + n_meridi
         self.minimal_mode = self.width * self.height == 0
         self.needs_full_update = True
 
@@ -109,7 +110,8 @@ class PyClock(object):
         window_height = self.stdscr.getmaxyx()[0]
         max_height = window_height // self.char_height
         self._height = max(min(value, max_height), 0)
-        self._output_height = self._height * self.char_height
+        self.scaled_height = self._height * self.char_height
+        self._output_height = self.scaled_height
         self.minimal_mode = self.width * self.height == 0
         self.needs_full_update = True
 
@@ -136,11 +138,12 @@ class PyClock(object):
         if self.needs_full_update:
             self.recalculate_origin()
             self.full_delimiter_width = 1 if self.minimal_mode else self.width*2
-            self.full_char_width =  1 if self.minimal_mode else self.char_width*self.width + self.width
+            self.full_char_width = 1 if self.minimal_mode else self.char_width*self.width + self.width
 
             self.stdscr.clear()
             self.needs_full_update = False
             self.last_time = self.blank_time
+            if self.meridiem_on: self.last_meridiem = 'NA'
         elif cur_time == self.last_time:
             return
 
@@ -161,6 +164,15 @@ class PyClock(object):
                     self.draw_punctuation(x, y, self.kPUN_INDEX)
 
                 x += self.full_delimiter_width
+
+        if self.meridiem_on:
+            meridiem = strftime('%p')
+            if meridiem != self.last_meridiem:
+                y = self.origin_y if self.minimal_mode or self.meridiem_top else self.origin_y + self.scaled_height - 1
+                x = x - self.width+1 if not self.minimal_mode else x + 1
+                try: self.stdscr.addstr(y, x, meridiem, self.f_color | curses.A_BOLD)
+                except: pass
+                self.last_meridiem = meridiem
 
         self.stdscr.refresh()
         self.last_time = cur_time
@@ -237,6 +249,10 @@ class PyClock(object):
         self.auto_scale = not self.auto_scale
         if self.auto_scale: self.view_resized()
 
+    def toggle_meridiem(self):
+        self.meridiem_on = not self.meridiem_on
+        self.width = self.width
+
     def change_width(self, amt):
         self.width += amt
         if self.auto_scale: self.auto_scale = False
@@ -282,6 +298,7 @@ class Driver(object):
         elif lower=='p': self.clock.toggle_punctuation()
         elif lower=='c': self.clock.toggle_center()
         elif lower=='a': self.clock.toggle_auto_scale()
+        elif lower=='m': self.clock.toggle_meridiem()
 
         elif key==',' or key=='<': self.clock.change_width(-1)
         elif key=='.' or key=='>': self.clock.change_width( 1)
@@ -314,6 +331,10 @@ def init_args():
                         help='do not auto scale display', dest='auto_scale')
     parser.add_argument('-a', '--auto-scale', action='store_true', default=True,
                         help='auto scale display', dest='auto_scale')
+    parser.add_argument('-M', '--no-meridiem', action='store_false', default=False,
+                        help='do not display AM/PM', dest='meridiem')
+    parser.add_argument('-m', '--meridiem', action='store_true', default=False,
+                        help='display AM/PM', dest='meridiem')
     parser.add_argument('-k', '--color', type=int, default=PyClock.kDEFAULT_COLOR, choices=range(256),
                         help='color 0-255 (default: %(default)s)', metavar='COLOR')
     parser.add_argument('-f', '--format', type=str, default=PyClock.kDEFAULT_FORMAT,
