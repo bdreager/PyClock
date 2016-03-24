@@ -10,7 +10,7 @@ python pyclock.py
 
 ### Screenshot
 
-![image alt](example.png)
+![Screenshot](example_screen.png)
 
 ### Controls
 
