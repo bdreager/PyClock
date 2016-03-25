@@ -1,13 +1,18 @@
 # PyClock
 
-###What
+### What
 A simple digital clock for the terminal
 
-###Run
+### Run
 ```
 python pyclock.py
 ```
-###Controls
+
+### Screenshot
+
+![Screenshot](example_screen.png)
+
+### Controls
 
 Keys  | Actions
 ----- | -------
@@ -25,7 +30,7 @@ Keys  | Actions
 <kbd>=</kbd> or <kbd>+</kbd>                   | change color up
 <kbd>`</kbd> or <kbd>~</kbd>                   | random color
 
-###Command-line options
+### Command-line options
 
 Options | Descriptions
 ------- | ------------
@@ -43,11 +48,11 @@ Options | Descriptions
 `-W WIDTH` or `--width WIDTH` | scale width (default: 1)
 `-H HEIGHT` or `--height HEIGHT` | scale height (default: 1)
 
-###Configuration file
+### Configuration file
 
 Check out ```example.pyclock.conf``` for details.
 
-###Support
+### Support
 
 - [x] Works on Linux completely
 
